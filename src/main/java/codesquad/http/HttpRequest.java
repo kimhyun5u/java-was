@@ -7,11 +7,11 @@ public class HttpRequest {
     private final String version;
     private final String host;
     private final String path;
-    private final String query;
+    private final Map<String, String> query;
     private final String body;
     private final Map<String, String> headers;
 
-    public HttpRequest(String method, String version, String host, String path, String query, String body, Map<String, String> headers) {
+    public HttpRequest(String method, String version, String host, String path, Map<String, String> query, String body, Map<String, String> headers) {
         this.method = method;
         this.version = version;
         this.host = host;
