@@ -24,6 +24,9 @@ public class Main {
             ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
             Runtime.getRuntime().addShutdownHook(new Thread(threadPool::shutdown));
 
+            // init MIME
+            MIME.init();
+
             logger.info("Listening for connection on port 8080 ....");
 
             while (true) {
@@ -63,7 +66,14 @@ public class Main {
                 return;
             }
 
-            String contentType = getContentType(path);
+            String ext = getFileExtension(path);
+            String contentType;
+            if (ext.isEmpty()) {
+                contentType = null;
+            } else {
+                contentType = MIME.getMIMEType(ext);
+            }
+
             String connectionHeader = request.getHeader("Connection");
             boolean keepAlive = "keep-alive".equalsIgnoreCase(connectionHeader);
 
@@ -107,13 +117,11 @@ public class Main {
         }
     }
 
-    private static String getContentType(String path) {
-        if (path.endsWith(".html")) return "text/html";
-        if (path.endsWith(".css")) return "text/css";
-        if (path.endsWith(".js")) return "application/javascript";
-        if (path.endsWith(".jpeg") || path.endsWith(".jpg")) return "image/jpeg";
-        if (path.endsWith(".png")) return "image/png";
-        if (path.endsWith(".svg")) return "image/svg+xml";
-        return "application/octet-stream";
+    private static String getFileExtension(String path) {
+        int lastIndexOf = path.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return ""; // 확장자가 없는 경우
+        }
+        return path.substring(lastIndexOf + 1);
     }
 }
