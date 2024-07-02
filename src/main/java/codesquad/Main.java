@@ -6,13 +6,16 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private static final String BASE_RESOURCE_PATH = "build/resources/main/";
-    private static final int THREAD_POOL_SIZE = 10; // 동시 요청 수에 맞춰 조정
+    private static final int THREAD_POOL_SIZE = 10;
+    private static final String ROOT_PATH = "/index.html";
 
     public static void main(String[] args) throws IOException {
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
@@ -28,18 +31,18 @@ public class Main {
 
     private static void handleRequest(Socket clientSocket) {
         try (clientSocket; BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); OutputStream clientOutput = clientSocket.getOutputStream()) {
-
-            String path = "/index.html";
-
-            String requestLine = br.readLine();
-            if (requestLine != null && requestLine.startsWith("GET")) {
-                path = requestLine.split(" ")[1];
-                logger.info(requestLine);
+            List<String> lines = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null && !line.isEmpty()) {
+                lines.add(line);
             }
 
+            HttpRequest request = HttpRequest.of(lines);
+            String path = request.getPath();
 
+            logger.info(request.getRequestLine());
             if (path.equals("/") || path.isEmpty()) {
-                path = "/index.html";
+                path = ROOT_PATH;
             }
 
             String fullPath = BASE_RESOURCE_PATH + "static" + path;
@@ -48,10 +51,17 @@ public class Main {
             if (file.exists()) {
                 String contentType = getContentType(path);
                 byte[] content = readFileAt(fullPath);
+                String connectionHeader = request.getHeader("Connection");
+                boolean keepAlive = "keep-alive".equalsIgnoreCase(connectionHeader);
 
                 clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
                 clientOutput.write(("Content-Type: " + contentType + "\r\n").getBytes());
                 clientOutput.write(("Content-Length: " + content.length + "\r\n").getBytes());
+                if (keepAlive) {
+                    clientOutput.write(("Connection: keep-alive\r\n").getBytes());
+                } else {
+                    clientOutput.write(("Connection: close\r\n").getBytes());
+                }
                 clientOutput.write("\r\n".getBytes());
                 clientOutput.write(content);
             } else {
@@ -61,6 +71,11 @@ public class Main {
             clientOutput.flush();
         } catch (IOException e) {
             logger.error("Error handling request", e);
+            try {
+                clientSocket.close();
+            } catch (IOException closeException) {
+                logger.error("Error closing client socket", closeException);
+            }
         }
     }
 
