@@ -25,8 +25,8 @@ class HttpRequestTest {
     void checkRequestMapping() {
         HttpRequest request = HttpRequest.of(httpRequest);
 
-        assertEquals(request.getMethod(), "GET");
-        assertEquals(request.getPath(), "/index.html");
+        assertEquals("GET", request.getMethod());
+        assertEquals("/index.html", request.getPath());
     }
 
 }
