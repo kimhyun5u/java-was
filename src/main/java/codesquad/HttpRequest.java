@@ -49,32 +49,13 @@ public class HttpRequest {
         return method;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
     public String getPath() {
         return path;
     }
 
-    public String getQuery() {
-        return query;
-    }
-
-    public String getBody() {
-        return body;
-    }
 
     public String getHeader(String key) {
         return headers.get(key);
-    }
-
-    public Map<String, String> getHeaders() {
-        return headers;
     }
 
     public String getRequestLine() {
