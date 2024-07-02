@@ -1,6 +1,7 @@
 package codesquad.http.handler;
 
 import codesquad.http.HttpRequest;
+import codesquad.http.HttpRequestParser;
 import codesquad.http.MIME;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class DefaultRequestHandler implements RequestHandler {
                 lines.add(line);
             }
 
-            HttpRequest request = HttpRequest.of(lines);
+            HttpRequest request = HttpRequestParser.parse(lines);
             String path = request.getPath();
 
             logger.info(request.getRequestLine());

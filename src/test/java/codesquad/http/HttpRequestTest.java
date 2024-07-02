@@ -23,7 +23,7 @@ class HttpRequestTest {
     @Test
     @DisplayName("요청에 맞게 매핑이 된다.")
     void checkRequestMapping() {
-        HttpRequest request = HttpRequest.of(httpRequest);
+        HttpRequest request = HttpRequestParser.parse(httpRequest);
 
         assertEquals("GET", request.getMethod());
         assertEquals("/index.html", request.getPath());
