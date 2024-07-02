@@ -17,7 +17,7 @@ public class DefaultRequestHandler implements RequestHandler {
     private static final String ROOT_PATH = "/index.html";
     private static final String STATIC_RESOURCE_PATH = "/static";
 
-    private static byte[] readResourceFileAsBytes(String resourcePath) throws IOException {
+    protected byte[] readResourceFileAsBytes(String resourcePath) throws IOException {
         try (InputStream is = Main.class.getResourceAsStream(resourcePath);
              ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
 
@@ -36,7 +36,7 @@ public class DefaultRequestHandler implements RequestHandler {
         }
     }
 
-    private static String getFileExtension(String path) {
+    protected String getFileExtension(String path) {
         int lastIndexOf = path.lastIndexOf(".");
         if (lastIndexOf == -1) {
             return ""; // 확장자가 없는 경우
