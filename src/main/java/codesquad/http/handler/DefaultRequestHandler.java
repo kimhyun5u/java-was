@@ -1,7 +1,6 @@
 package codesquad.http.handler;
 
 import codesquad.MIME;
-import codesquad.Main;
 import codesquad.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,7 @@ public class DefaultRequestHandler implements RequestHandler {
     private static final String STATIC_RESOURCE_PATH = "/static";
 
     protected byte[] readResourceFileAsBytes(String resourcePath) throws IOException {
-        try (InputStream is = Main.class.getResourceAsStream(resourcePath);
+        try (InputStream is = getClass().getResourceAsStream(resourcePath);
              ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
 
             if (is == null) {
