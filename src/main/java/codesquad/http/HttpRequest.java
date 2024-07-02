@@ -1,4 +1,4 @@
-package codesquad;
+package codesquad.http;
 
 import java.util.HashMap;
 import java.util.List;
