@@ -59,8 +59,10 @@ public class DefaultRequestHandler implements RequestHandler {
             String path = request.getPath();
 
             logger.info(request.getRequestLine());
-            if (path.equals("/") || path.isEmpty()) {
+            if (path.equals("/")) {
                 path = ROOT_PATH;
+            } else if ("".equals(getFileExtension(path))) {
+                path += ROOT_PATH;
             }
 
             String resourcePath = STATIC_RESOURCE_PATH + path;
