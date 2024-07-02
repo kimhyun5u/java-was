@@ -1,7 +1,7 @@
 package codesquad.http.handler;
 
-import codesquad.MIME;
 import codesquad.http.HttpRequest;
+import codesquad.http.MIME;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
