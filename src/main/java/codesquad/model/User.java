@@ -10,14 +10,4 @@ public class User {
         this.password = password;
         this.name = name;
     }
-
-    public String toJson() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append("\"userId\":\"").append(userId).append("\",");
-        builder.append("\"password\":\"").append(password).append("\",");
-        builder.append("\"name\":\"").append(name).append("\"");
-        builder.append("}");
-        return builder.toString();
-    }
 }
