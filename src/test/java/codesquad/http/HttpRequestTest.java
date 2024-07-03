@@ -26,7 +26,7 @@ class HttpRequestTest {
         HttpRequest request = HttpRequestParser.parse(httpRequest);
 
         assertEquals("GET", request.getMethod());
-        assertEquals("/index.html", request.getPath());
+        assertEquals("/index.html", request.getTarget());
     }
 
 }

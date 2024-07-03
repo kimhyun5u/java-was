@@ -3,6 +3,8 @@ package codesquad.http.handler;
 import codesquad.http.HttpRequest;
 import codesquad.http.HttpRequestParser;
 import codesquad.http.MIME;
+import codesquad.model.User;
+import codesquad.utils.JsonConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,15 @@ public class DefaultRequestHandler implements RequestHandler {
             }
 
             HttpRequest request = HttpRequestParser.parse(lines);
-            String path = request.getPath();
+            if (request.getHeader("Content-Length") != null) {
+                lines.clear();
+                while ((line = br.readLine()) != null && !line.isEmpty()) {
+                    lines.add(line);
+                }
+                request.setBody(HttpRequestParser.parseBody(lines));
+            }
+
+            String path = request.getTarget();
 
             logger.info(request.getRequestLine());
             if (path.equals("/")) {
@@ -71,10 +81,25 @@ public class DefaultRequestHandler implements RequestHandler {
             try {
                 content = readResourceFileAsBytes(resourcePath);
             } catch (IOException e) {
-                String notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile Not Found";
-                clientOutput.write(notFoundResponse.getBytes());
-                clientOutput.flush();
-                return;
+                if ("/create".equals(request.getTarget())) {
+                    User user = new User(request.getQuery("userId"), request.getQuery("password"), request.getQuery("name"));
+                    String json = JsonConverter.toJson(user);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("HTTP/1.1 201 Created\r\n");
+                    sb.append("Content-Type: application/json\r\n");
+                    sb.append("Content-Length: ").append(json.getBytes().length).append("\r\n");
+                    sb.append("\r\n");
+                    sb.append(json);
+                    clientOutput.write(sb.toString().getBytes());
+                    clientOutput.flush();
+
+                    return;
+                } else {
+                    String notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile Not Found";
+                    clientOutput.write(notFoundResponse.getBytes());
+                    clientOutput.flush();
+                    return;
+                }
             }
 
             String ext = getFileExtension(path);
