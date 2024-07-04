@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,11 +22,12 @@ public class HttpRequestParser {
             lines.add(line);
         }
 
-        // Request Line Paser
+        // Request Line Parser
         String[] requestLine = lines.get(0).split(" ");
         int headerCounter = 1;
         Map<String, String> query = new HashMap<>();
         String target;
+        requestLine[1] = URLDecoder.decode(requestLine[1], "UTF-8");
         if (requestLine[1].contains("?")) {
             String[] requests = requestLine[1].split("\\?");
             target = requests[0];
