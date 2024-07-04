@@ -19,6 +19,7 @@ public class HttpResponse {
 
     public HttpResponse(OutputStream outputStream) {
         this.outputStream = outputStream;
+        this.version = "HTTP/1.1";
         this.headers = new HashMap<>();
     }
 
@@ -40,6 +41,7 @@ public class HttpResponse {
 
     public HttpResponse setBody(byte[] body) {
         this.body = body;
+        this.headers.put("Content-Length", String.valueOf(body.length));
         return this;
     }
 
