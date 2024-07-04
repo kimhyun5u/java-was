@@ -11,11 +11,11 @@ public class CreateUserHandler {
 
     public static void createUser(Context ctx) {
         User user = new User(ctx.request().getQuery("userId"), ctx.request().getQuery("password"), ctx.request().getQuery("name"));
-        String json = JsonConverter.toJson(user);
-        ctx.response().setStatus(HttpStatus.CREATED);
-        ctx.response().setVersion(ctx.request().getVersion());
-        ctx.response().addHeader("Content-Type", "application/json");
-        ctx.response().addHeader("Content-Length", String.valueOf(json.getBytes().length));
-        ctx.response().setBody(json.getBytes());
+        var json = JsonConverter.toJson(user).getBytes();
+        ctx.response().setStatus(HttpStatus.CREATED)
+                .setVersion(ctx.request().getVersion())
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Content-Length", String.valueOf(json.length))
+                .setBody(json);
     }
 }
