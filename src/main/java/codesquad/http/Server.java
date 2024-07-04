@@ -72,7 +72,6 @@ public class Server {
                 handler.handle(ctx);
             } else {
                 res.setStatus(HttpStatus.BAD_REQUEST);
-                res.setVersion(req.getVersion());
             }
 
             res.send();

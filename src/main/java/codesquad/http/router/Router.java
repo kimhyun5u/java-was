@@ -70,7 +70,6 @@ public class Router {
             ctx.response().setBody(file);
             ctx.response().addHeader("Content-Type", MIME.getMIMEType(getFileExtension(path)));
             ctx.response().addHeader("Content-Length", String.valueOf(file.length));
-            ctx.response().setVersion(ctx.request().getVersion());
             ctx.response().setStatus(HttpStatus.OK);
         };
     }
