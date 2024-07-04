@@ -59,7 +59,7 @@ public class Server {
 
     private void handleRequest(Socket clientSocket) {
         try (clientSocket; var input = clientSocket.getInputStream(); var output = clientSocket.getOutputStream()) {
-            HttpRequest req = HttpRequestParser.parse(input);
+            HttpRequest req = HttpRequest.from(input);
             HttpResponse res = new HttpResponse(output);
 
             Context ctx = new Context(req, res);
