@@ -1,5 +1,10 @@
 package codesquad.http;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,8 +13,15 @@ public class HttpRequestParser {
     private HttpRequestParser() {
     }
 
-    public static HttpRequest parse(final List<String> lines) {
-        // Request Line
+    public static HttpRequest parse(InputStream is) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        String line;
+        List<String> lines = new ArrayList<>();
+        while ((line = br.readLine()) != null && !line.isEmpty()) {
+            lines.add(line);
+        }
+
+        // Request Line Paser
         String[] requestLine = lines.get(0).split(" ");
         int headerCounter = 1;
         Map<String, String> query = new HashMap<>();
@@ -28,30 +40,30 @@ public class HttpRequestParser {
             target = requestLine[1];
         }
 
+        // Header Parse
         Map<String, String> headers = new HashMap<>();
-
         while (headerCounter < lines.size() && !lines.get(headerCounter).isEmpty()) {
             String[] header = lines.get(headerCounter++).split(":");
             headers.put(header[0].trim(), header[1].trim());
         }
-        StringBuilder sb = new StringBuilder();
 
-        for (int bodyCounter = headerCounter; bodyCounter < lines.size(); bodyCounter++) {
-            sb.append(lines.get(bodyCounter));
-            sb.append("\n");
+        // Body Parse
+        String body = "";
+        if (headers.get("Content-Length") != null) {
+            lines.clear();
+            while ((line = br.readLine()) != null && !line.isEmpty()) {
+                lines.add(line);
+            }
+
+            StringBuilder bodyBuilder = new StringBuilder();
+            for (String l : lines) {
+                bodyBuilder.append(l);
+                bodyBuilder.append("\n");
+            }
+            body = bodyBuilder.toString();
         }
 
-        return new HttpRequest(requestLine[0], requestLine[2], "", target, query, sb.toString(), headers);
-    }
 
-
-    public static String parseBody(List<String> lines) {
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            sb.append(line);
-            sb.append("\n");
-        }
-
-        return sb.toString();
+        return new HttpRequest(requestLine[0], requestLine[2], body, target, query, headers);
     }
 }

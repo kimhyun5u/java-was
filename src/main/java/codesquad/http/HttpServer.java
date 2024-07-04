@@ -1,6 +1,8 @@
 package codesquad.http;
 
-import codesquad.http.handler.RequestHandler;
+import codesquad.http.handler.Context;
+import codesquad.http.handler.Handler;
+import codesquad.http.router.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +16,30 @@ public class HttpServer {
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
     private final int port;
     private final int threadPoolSize;
-    private final RequestHandler requestHandler;
     private final ExecutorService threadPool;
+    private final Router router;
 
-    public HttpServer(int port, int threadPoolSize, RequestHandler requestHandler) {
+    public HttpServer(int port, int threadPoolSize) {
         this.port = port;
         this.threadPoolSize = threadPoolSize;
         this.threadPool = Executors.newFixedThreadPool(this.threadPoolSize);
-        this.requestHandler = requestHandler;
+        this.router = new Router();
+    }
+
+    public void get(String path, Handler handler) {
+        addRoute("GET", path, handler);
+    }
+
+    public void post(String path, Handler handler) {
+        addRoute("POST", path, handler);
+    }
+
+    public void staticFiles(String path, String staticPath) {
+        router.staticFiles(path, staticPath);
+    }
+
+    private void addRoute(String method, String path, Handler handler) {
+        router.addRoute(method, path, handler);
     }
 
     public void start() throws IOException {
@@ -35,8 +53,31 @@ public class HttpServer {
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
-                threadPool.submit(() -> requestHandler.handleRequest(clientSocket));
+                threadPool.submit(() -> handleRequest(clientSocket));
             }
+        }
+    }
+
+    private void handleRequest(Socket clientSocket) {
+        try (clientSocket; var input = clientSocket.getInputStream(); var output = clientSocket.getOutputStream()) {
+            HttpRequest req = HttpRequestParser.parse(input);
+            HttpResponse res = new HttpResponse(output);
+
+            Context ctx = new Context(req, res);
+
+            Handler handler = router.getHandlers(req.getMethod(), req.getPath());
+
+            logger.info(req.getRequestLine());
+
+            if (handler != null) {
+                handler.handle(ctx);
+            } else {
+                res.setStatus(HttpStatus.NOT_FOUND);
+            }
+
+            res.send();
+        } catch (IOException e) {
+            logger.error("Error Handling Request", e);
         }
     }
 }
