@@ -34,7 +34,7 @@ class HttpRequestTest {
     @Test
     @DisplayName("요청에 맞게 매핑이 된다.")
     void checkRequestMapping() throws IOException {
-        HttpRequest request = HttpRequestParser.parse(is);
+        HttpRequest request = HttpRequest.from(is);
 
         assertEquals("GET", request.getMethod());
         assertEquals("/index.html", request.getPath());
