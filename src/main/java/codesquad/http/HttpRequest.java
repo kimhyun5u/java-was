@@ -1,6 +1,7 @@
 package codesquad.http;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class HttpRequest {
     private final String method;
@@ -27,8 +28,8 @@ public class HttpRequest {
         return path;
     }
 
-    public String getHeader(String key) {
-        return headers.get(key);
+    public Optional<String> getHeader(String key) {
+        return Optional.ofNullable(headers.get(key));
     }
 
     public String getRequestLine() {
