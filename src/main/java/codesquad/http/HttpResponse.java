@@ -13,6 +13,10 @@ public class HttpResponse {
     private Map<String, String> headers;
     private byte[] body;
 
+    public HttpResponse() {
+        this.headers = new HashMap<>();
+    }
+
     public HttpResponse(OutputStream outputStream) {
         this.outputStream = outputStream;
         this.headers = new HashMap<>();
@@ -55,5 +59,9 @@ public class HttpResponse {
         }
 
         outputStream.flush();
+    }
+
+    public byte[] getBody() {
+        return this.body;
     }
 }
