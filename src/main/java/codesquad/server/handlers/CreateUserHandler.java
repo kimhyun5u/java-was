@@ -13,9 +13,7 @@ public class CreateUserHandler {
         User user = new User(ctx.request().getQuery("userId"), ctx.request().getQuery("password"), ctx.request().getQuery("name"));
         var json = JsonConverter.toJson(user).getBytes();
         ctx.response().setStatus(HttpStatus.CREATED)
-                .setVersion(ctx.request().getVersion())
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Content-Length", String.valueOf(json.length))
                 .setBody(json);
     }
 }
