@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +28,7 @@ class HttpRequestTest {
                 "Cache-Control: max-age=0",
                 "");
         String joinedString = String.join("\r\n", httpRequest);
-        is = new ByteArrayInputStream(joinedString.getBytes(StandardCharsets.UTF_8));
+        is = new ByteArrayInputStream(joinedString.getBytes());
     }
 
     @Test
