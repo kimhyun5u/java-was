@@ -17,6 +17,47 @@ public class Server {
     private final int threadPoolSize;
     private final ExecutorService threadPool;
     private final Router router;
+    String notFoundHtml = """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>404 Not Found</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f0f0f0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                    }
+                    .container {
+                        background-color: white;
+                        padding: 2rem;
+                        border-radius: 10px;
+                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                        text-align: center;
+                    }
+                    h1 {
+                        color: #4362d0;
+                    }
+                    p {
+                        color: #34495e;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>404 Not Found</h1>
+                    <p>The page you are looking for doesn't exist or has been moved.</p>
+                    <p>Please check the URL or go back to the <a href="/">homepage</a>.</p>
+                </div>
+            </body>
+            </html>
+            """;
 
     public Server(int port, int threadPoolSize) {
         this.port = port;
@@ -71,7 +112,9 @@ public class Server {
             if (handler != null) {
                 handler.handle(ctx);
             } else {
-                res.setStatus(HttpStatus.BAD_REQUEST);
+                res.setStatus(HttpStatus.NOT_FOUND);
+                res.addHeader("Content-Type", "text/html");
+                res.setBody(notFoundHtml.getBytes());
             }
 
             res.send();
