@@ -1,7 +1,8 @@
 package codesquad.http;
 
 public enum HttpStatus {
-    OK(200, "OK"), NOT_FOUND(404, "Not Found"), CREATED(201, "Created");
+    OK(200, "OK"), NOT_FOUND(404, "Not Found"), CREATED(201, "Created"), BAD_REQUEST(400, "Bad Request"),
+    ;
     private final int code;
     private final String message;
 
