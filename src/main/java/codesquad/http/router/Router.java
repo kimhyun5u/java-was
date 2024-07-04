@@ -17,8 +17,8 @@ public class Router {
     private static final Logger logger = LoggerFactory.getLogger(Router.class);
     private static final String ROOT_PATH = "/index.html";
 
-    private Map<String, Map<String, Handler>> routes;
-    private Map<String, String> staticRoutes;
+    private final Map<String, Map<String, Handler>> routes;
+    private final Map<String, String> staticRoutes;
 
 
     public Router() {
