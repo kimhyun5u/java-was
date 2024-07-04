@@ -71,7 +71,8 @@ public class Server {
             if (handler != null) {
                 handler.handle(ctx);
             } else {
-                res.setStatus(HttpStatus.NOT_FOUND);
+                res.setStatus(HttpStatus.BAD_REQUEST);
+                res.setVersion(req.getVersion());
             }
 
             res.send();
