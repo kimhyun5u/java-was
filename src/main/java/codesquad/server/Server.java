@@ -1,6 +1,6 @@
-package codesquad.http;
+package codesquad.server;
 
-import codesquad.http.handler.Context;
+import codesquad.http.*;
 import codesquad.http.handler.Handler;
 import codesquad.http.router.Router;
 import org.slf4j.Logger;
@@ -12,14 +12,14 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class HttpServer {
-    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
+public class Server {
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private final int port;
     private final int threadPoolSize;
     private final ExecutorService threadPool;
     private final Router router;
 
-    public HttpServer(int port, int threadPoolSize) {
+    public Server(int port, int threadPoolSize) {
         this.port = port;
         this.threadPoolSize = threadPoolSize;
         this.threadPool = Executors.newFixedThreadPool(this.threadPoolSize);

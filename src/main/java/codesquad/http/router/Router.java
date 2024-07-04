@@ -1,8 +1,8 @@
 package codesquad.http.router;
 
+import codesquad.http.Context;
 import codesquad.http.HttpStatus;
 import codesquad.http.MIME;
-import codesquad.http.handler.Context;
 import codesquad.http.handler.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

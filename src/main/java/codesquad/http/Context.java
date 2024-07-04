@@ -1,7 +1,4 @@
-package codesquad.http.handler;
-
-import codesquad.http.HttpRequest;
-import codesquad.http.HttpResponse;
+package codesquad.http;
 
 public class Context {
     private final HttpRequest request;
