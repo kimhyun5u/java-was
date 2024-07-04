@@ -13,9 +13,6 @@ public class HttpResponse {
     private Map<String, String> headers;
     private byte[] body;
 
-    private HttpResponse() {
-    }
-
     public HttpResponse(OutputStream outputStream) {
         this.outputStream = outputStream;
         this.headers = new HashMap<>();
@@ -47,7 +44,7 @@ public class HttpResponse {
         outputStream.write(statusLine.getBytes());
 
         for (Map.Entry<String, String> header : headers.entrySet()) {
-            String headerLine = String.format("%s: %s\r\n", header.getKey(), header.getValue());
+            String headerLine = header.getKey() + ": " + header.getValue() + " \r\n";
             outputStream.write(headerLine.getBytes());
         }
 
