@@ -21,21 +21,25 @@ public class HttpResponse {
         this.headers = new HashMap<>();
     }
 
-    public void setStatus(HttpStatus status) {
+    public HttpResponse setStatus(HttpStatus status) {
         this.statusCode = status.getCode();
         this.statusMsg = status.getMessage();
+        return this;
     }
 
-    public void addHeader(String key, String value) {
+    public HttpResponse addHeader(String key, String value) {
         this.headers.put(key, value);
+        return this;
     }
 
-    public void setVersion(String version) {
+    public HttpResponse setVersion(String version) {
         this.version = version;
+        return this;
     }
 
-    public void setBody(byte[] body) {
+    public HttpResponse setBody(byte[] body) {
         this.body = body;
+        return this;
     }
 
     public void send() throws IOException {
