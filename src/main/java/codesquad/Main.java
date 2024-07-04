@@ -1,6 +1,5 @@
 package codesquad;
 
-import codesquad.http.MIME;
 import codesquad.http.Server;
 import codesquad.server.handlers.CreateUserHandler;
 import org.slf4j.Logger;
@@ -15,7 +14,6 @@ public class Main {
 
 
     public static void main(String[] args) {
-        MIME.init();
         Server server = new Server(PORT, THREAD_POOL_SIZE);
         server.get("/create", CreateUserHandler::createUser);
         server.staticFiles("/", "/static");
