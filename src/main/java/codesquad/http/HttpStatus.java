@@ -10,15 +10,6 @@ public enum HttpStatus {
         this.message = message;
     }
 
-    public static String getStatusMessage(int code) {
-        for (HttpStatus status : HttpStatus.values()) {
-            if (status.code == code) {
-                return status.message;
-            }
-        }
-        return NOT_FOUND.message;
-    }
-
     public int getCode() {
         return code;
     }
