@@ -1,6 +1,5 @@
-package codesquad.server;
+package codesquad.http;
 
-import codesquad.http.*;
 import codesquad.http.handler.Handler;
 import codesquad.http.router.Router;
 import org.slf4j.Logger;
