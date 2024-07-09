@@ -77,7 +77,7 @@ class HttpRequestTest {
     }
 
     @ParameterizedTest
-    @DisplayName("요청에 맞게 매핑이 된다.")
+    @DisplayName("요청 메소드와 경로 확인")
     @MethodSource("request")
     void checkRequestMapping(String req) throws IOException {
         is = new ByteArrayInputStream(req.getBytes());

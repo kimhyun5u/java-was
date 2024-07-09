@@ -1,10 +1,11 @@
 package codesquad.http;
 
 import codesquad.model.User;
-import codesquad.server.handlers.CreateUserHandler;
+import codesquad.server.handlers.UserHandler;
 import codesquad.utils.JsonConverter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedOutputStream;
@@ -46,6 +47,7 @@ class ServerTest {
     }
 
     @Test
+    @DisplayName("서버 시작 및 요청 처리")
     void testServerStartAndHandleRequest() throws IOException, InterruptedException {
         // 테스트용 핸들러 등록
         server.get("/test", ctx -> {
@@ -82,6 +84,7 @@ class ServerTest {
     }
 
     @Test
+    @DisplayName("요청 경로 없음")
     void testNotFoundRoute() throws IOException, InterruptedException {
         executorService.submit(() -> {
             try {
@@ -104,8 +107,9 @@ class ServerTest {
     }
 
     @Test
+    @DisplayName("회원가입 실패 - 잘못된 메소드 요청")
     void testCreateUserFailure() throws IOException {
-        server.post("/create", CreateUserHandler::createUser);
+        server.post("/create", UserHandler::createUser);
 
         executorService.submit(() ->
         {
@@ -125,10 +129,11 @@ class ServerTest {
     }
 
     @Test
+    @DisplayName("회원가입 성공")
     void testCreateUser() throws IOException {
-        byte[] expect = JsonConverter.toJson(new User("javajigi", "password", "박재성")).getBytes();
+        byte[] expect = JsonConverter.toJson(new User("javajigi1", "password1", "박재성", "javajigi@slipp.net")).getBytes();
         server.staticFiles("/", "/static");
-        server.post("/create", CreateUserHandler::createUser);
+        server.post("/create", UserHandler::createUser);
 
         executorService.submit(() ->
         {
@@ -144,13 +149,13 @@ class ServerTest {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Host", "localhost:8080");
         conn.setRequestProperty("Connection", "keep-alive");
-        conn.setRequestProperty("Content-Length", "93");
+        conn.setRequestProperty("Content-Length", "95");
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         conn.setRequestProperty("Accept", "*/*");
         conn.setDoOutput(true);
         // redirect 방지
         conn.setInstanceFollowRedirects(false);
-        String formData = "userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net";
+        String formData = "userId=javajigi1&password=password1&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net";
 
         // 데이터 쓰기
         try (BufferedOutputStream os = new BufferedOutputStream(conn.getOutputStream())) {

@@ -73,6 +73,10 @@ public class HttpResponse {
         return statusCode;
     }
 
+    public String getHeader(String key) {
+        return headers.get(key);
+    }
+
     protected OutputStream getOutputStream() {
         return outputStream;
     }

@@ -1,5 +1,6 @@
 package codesquad.http;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedOutputStream;
@@ -14,6 +15,7 @@ class IOPerformanceTest {
     private static final String TEST_DATA = "Hello, World! This is a test of IO performance.";
 
     @Test
+    @DisplayName("BufferedOutputStream을 사용한 경우와 사용하지 않은 경우의 성능 비교")
     void IOPerformanceTest() throws IOException {
         // 1. BufferedOutputStream을 사용한 경우
         HttpResponse bufferedResponse = new HttpResponse(new ByteArrayOutputStream());
