@@ -17,7 +17,7 @@ public class Main {
     public static void main(String[] args) {
         Server server = new Server(PORT, THREAD_POOL_SIZE);
 
-        server.post("/create", CreateUserHandler::createUser);
+        server.post("/user/create", CreateUserHandler::createUser);
         server.get("/register.html", ViewRegistrationHandler::viewRegistration);
         server.staticFiles("/", "/static");
 
