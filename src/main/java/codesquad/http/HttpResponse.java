@@ -1,5 +1,6 @@
 package codesquad.http;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -47,23 +48,32 @@ public class HttpResponse {
 
     public void send() throws IOException {
         String statusLine = String.format("%s %d %s", version, statusCode, statusMsg);
-        outputStream.write(statusLine.getBytes());
+        BufferedOutputStream os = new BufferedOutputStream(outputStream);
+        os.write(statusLine.getBytes());
 
         for (Map.Entry<String, String> header : headers.entrySet()) {
             String headerLine = header.getKey() + ": " + header.getValue() + " \r\n";
-            outputStream.write(headerLine.getBytes());
+            os.write(headerLine.getBytes());
         }
 
-        outputStream.write("\r\n".getBytes());
+        os.write("\r\n".getBytes());
 
         if (body != null) {
-            outputStream.write(body);
+            os.write(body);
         }
 
-        outputStream.flush();
+        os.flush();
     }
 
     public byte[] getBody() {
         return this.body;
+    }
+
+    protected OutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    protected Map<String, String> getHeaders() {
+        return headers;
     }
 }
