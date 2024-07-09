@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Router {
     private static final Logger logger = LoggerFactory.getLogger(Router.class);
@@ -22,8 +23,8 @@ public class Router {
 
 
     public Router() {
-        routes = new HashMap<>();
-        staticRoutes = new HashMap<>();
+        routes = new ConcurrentHashMap<>();
+        staticRoutes = new ConcurrentHashMap<>();
     }
 
 
