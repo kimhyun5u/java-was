@@ -22,4 +22,8 @@ public class SessionRepository {
     public static String getSession(int sid) {
         return (String) Database.get(DBNAME, sid).orElse(null);
     }
+
+    public static void removeSession(int sid) {
+        Database.remove(DBNAME, sid);
+    }
 }

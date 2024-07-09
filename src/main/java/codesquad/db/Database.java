@@ -22,4 +22,8 @@ public class Database {
     public static Optional<Object> get(String dbname, Object key) {
         return Optional.ofNullable(db.get(dbname).get(key));
     }
+
+    public static void remove(String dbname, Object key) {
+        db.get(dbname).remove(key);
+    }
 }

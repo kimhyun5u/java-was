@@ -7,6 +7,8 @@ import codesquad.server.db.SessionRepository;
 import codesquad.server.db.UserRepository;
 import codesquad.utils.JsonConverter;
 
+import java.util.Optional;
+
 public class UserHandler {
     private UserHandler() {
     }
@@ -30,16 +32,40 @@ public class UserHandler {
             sid = SessionRepository.addSession(user.getUserId());
         } catch (IllegalArgumentException e) {
             ctx.response()
-                    .setStatus(HttpStatus.NO_CONTENT)
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/user/login_failed")
+                    .addHeader("Content-Type", "text/html")
                     .setBody(e.getMessage().getBytes());
             return;
         }
         if (user.checkPassword(ctx.request().getQuery("password"))) {
             ctx.response()
-                    .setStatus(HttpStatus.OK)
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
                     .addHeader("set-cookie", String.format("sid=%d; Path=/", sid));
         } else {
             ctx.response().setStatus(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    public static void logout(Context ctx) {
+        Optional<String> cookie = ctx.request().getHeader("Cookie");
+        if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
+            int sid = Integer.parseInt(cookie.get().split("=")[1]);
+            SessionRepository.removeSession(sid);
+
+            ctx.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
+                    .addHeader("set-cookie", "sid=; Path=/; Max-Age=0");
+
+            return;
+        }
+
+        ctx.response()
+                .setStatus(HttpStatus.REDIRECT_FOUND)
+                .addHeader("Location", "/user/logout-failed")
+                .addHeader("Content-Type", "text/html")
+                .setBody("Logout failed".getBytes());
     }
 }
