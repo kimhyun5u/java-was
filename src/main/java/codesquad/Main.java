@@ -24,18 +24,16 @@ public class Main {
         server.get("/register.html", ViewRegistrationHandler::viewRegistration);
         server.get("/", ViewRegistrationHandler::getIndexPage);
         server.post("/user/logout", UserHandler::logout);
-        server.get("/user/login_failed", (ctx) -> {
-            ctx.response()
-                    .setStatus(HttpStatus.OK)
-                    .addHeader("Content-Type", "text/html")
-                    .setBody("Login failed".getBytes());
-        });
-        server.get("/user/logout_failed", (ctx) -> {
-            ctx.response()
-                    .setStatus(HttpStatus.OK)
-                    .addHeader("Content-Type", "text/html")
-                    .setBody("Logout failed".getBytes());
-        });
+        server.get("/user/login_failed", ctx ->
+                ctx.response()
+                        .setStatus(HttpStatus.OK)
+                        .addHeader("Content-Type", "text/html")
+                        .setBody("Login failed".getBytes()));
+        server.get("/user/logout_failed", ctx ->
+                ctx.response()
+                        .setStatus(HttpStatus.OK)
+                        .addHeader("Content-Type", "text/html")
+                        .setBody("Logout failed".getBytes()));
         server.staticFiles("/", "/static");
 
         try {
