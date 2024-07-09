@@ -47,7 +47,8 @@ public class HttpResponse {
     }
 
     public void send() throws IOException {
-        String statusLine = String.format("%s %d %s", version, statusCode, statusMsg);
+//        String statusLine = String.format("%s %d %s\r\n", version, statusCode, statusMsg);
+        String statusLine = version + " " + statusCode + " " + statusMsg + "\r\n";
         BufferedOutputStream os = new BufferedOutputStream(outputStream);
         os.write(statusLine.getBytes());
 
@@ -67,6 +68,10 @@ public class HttpResponse {
 
     public byte[] getBody() {
         return this.body;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
     }
 
     protected OutputStream getOutputStream() {
