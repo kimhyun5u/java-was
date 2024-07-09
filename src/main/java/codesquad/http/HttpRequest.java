@@ -1,9 +1,6 @@
 package codesquad.http;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URLDecoder;
 import java.util.*;
 
@@ -102,7 +99,7 @@ public class HttpRequest {
         }
 
         // POST 요청 처리
-        if ("POST".equalsIgnoreCase(method) && body.length() > 0) {
+        if ("POST".equalsIgnoreCase(method) && !body.isEmpty()) {
             String contentType = headers.getOrDefault("Content-Type", "").toLowerCase();
             if (contentType.contains("application/x-www-form-urlencoded")) {
                 parseQueryString(body, query);
@@ -113,11 +110,11 @@ public class HttpRequest {
         return new HttpRequest(method, requestLine[2], body, target, query, headers);
     }
 
-    private static void parseQueryString(String queryString, Map<String, String> query) {
+    private static void parseQueryString(String queryString, Map<String, String> query) throws UnsupportedEncodingException {
         for (String param : queryString.split("&")) {
             String[] keyValue = param.split("=", 2);
             if (keyValue.length == 2) {
-                query.put(keyValue[0], keyValue[1]);
+                query.put(keyValue[0], URLDecoder.decode(keyValue[1], "UTF-8"));
             } else if (keyValue.length == 1) {
                 query.put(keyValue[0], "");
             }
