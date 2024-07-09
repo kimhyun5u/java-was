@@ -66,9 +66,6 @@ class ServerTest {
             }
         });
 
-        // 서버가 시작될 때까지 잠시 대기
-        Thread.sleep(1000);
-
         // HTTP 요청 보내기
         URL url = new URL("http://localhost:" + port + "/test");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -93,8 +90,6 @@ class ServerTest {
                 e.printStackTrace();
             }
         });
-
-        Thread.sleep(1000);
 
         URL url = new URL("http://localhost:" + port + "/nonexistent");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
