@@ -18,8 +18,6 @@ import java.util.concurrent.Executors;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private static final Map<Integer, String> session = new ConcurrentHashMap<>(); // 지워질 코드
-    private static final Map<String, User> db = new ConcurrentHashMap<>(); // 지워질 코드
     private final int port;
     private final int threadPoolSize;
     private final ExecutorService threadPool;
