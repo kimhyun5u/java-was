@@ -26,4 +26,8 @@ public class SessionRepository {
     public static void removeSession(int sid) {
         Database.remove(DBNAME, sid);
     }
+
+    public static boolean isValid(int sid) {
+        return Database.get(DBNAME, sid).isPresent();
+    }
 }

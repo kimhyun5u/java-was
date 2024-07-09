@@ -52,19 +52,21 @@ public class UserHandler {
         Optional<String> cookie = ctx.request().getHeader("Cookie");
         if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
             int sid = Integer.parseInt(cookie.get().split("=")[1]);
-            SessionRepository.removeSession(sid);
+            if (SessionRepository.isValid(sid)) { // 유효한 세션인지 확인
+                SessionRepository.removeSession(sid);
 
-            ctx.response()
-                    .setStatus(HttpStatus.REDIRECT_FOUND)
-                    .addHeader("Location", "/")
-                    .addHeader("set-cookie", "sid=; Path=/; Max-Age=0");
+                ctx.response()
+                        .setStatus(HttpStatus.REDIRECT_FOUND)
+                        .addHeader("Location", "/")
+                        .addHeader("set-cookie", "sid=; Path=/; Max-Age=0");
 
-            return;
+                return;
+            }
         }
 
         ctx.response()
                 .setStatus(HttpStatus.REDIRECT_FOUND)
-                .addHeader("Location", "/user/logout-failed")
+                .addHeader("Location", "/user/logout_failed")
                 .addHeader("Content-Type", "text/html")
                 .setBody("Logout failed".getBytes());
     }

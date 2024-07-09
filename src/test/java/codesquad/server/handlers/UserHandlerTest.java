@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserHandlerTest {
     String createRequest = """
             POST /user/create HTTP/1.1
@@ -43,19 +44,11 @@ class UserHandlerTest {
 
     byte[] user;
     InputStream is;
+    int sid = 0;
 
     @BeforeEach
     void setUp() {
         user = JsonConverter.toJson(new User("javajigi", "password", "박재성", "javajigi@slipp.net")).getBytes();
-    }
-
-    @AfterEach
-    void tearDown() {
-        try {
-            is.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Test
@@ -74,7 +67,7 @@ class UserHandlerTest {
         UserHandler.login(ctx);
 
         // then
-        assertEquals(HttpStatus.NO_CONTENT.getCode(), res.getStatusCode());
+        assertEquals("사용자를 찾을 수 없습니다.", new String(res.getBody()));
     }
 
     @Test
@@ -110,10 +103,46 @@ class UserHandlerTest {
         UserHandler.login(ctx);
 
         // then
-        assertEquals(HttpStatus.OK.getCode(), res.getStatusCode());
+        assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
 
+        assertEquals("/", res.getHeader("Location"));
         System.out.println(res.getHeader("set-cookie"));
+        sid = Integer.parseInt(res.getHeader("set-cookie").split("=")[1].split(";")[0]);
     }
 
+    @Test
+    @Order(4)
+    @DisplayName("로그아웃 성공")
+    void testLogout() throws IOException {
+        // given
+        is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n").getBytes());
+        var req = HttpRequest.from(is);
+        var res = new HttpResponse();
+        var ctx = new Context(req, res);
 
+        // when
+        UserHandler.logout(ctx);
+
+        // then
+        assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
+        assertEquals("/", res.getHeader("Location"));
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("로그아웃 실패")
+    void testLogoutFailure() throws IOException {
+        // given
+        is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n").getBytes());
+        var req = HttpRequest.from(is);
+        var res = new HttpResponse();
+        var ctx = new Context(req, res);
+
+        // when
+        UserHandler.logout(ctx);
+
+        // then
+        assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
+        assertEquals("/user/logout_failed", res.getHeader("Location"));
+    }
 }
