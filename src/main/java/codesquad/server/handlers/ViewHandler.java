@@ -7,11 +7,11 @@ import codesquad.utils.ResourceResolver;
 
 import java.util.Optional;
 
-public class ViewRegistrationHandler {
-    private ViewRegistrationHandler() {
+public class ViewHandler {
+    private ViewHandler() {
     }
 
-    public static void viewRegistration(Context ctx) {
+    public static void getRegistrationPage(Context ctx) {
         ctx.response()
                 .addHeader("Content-Type", "text/html")
                 .setBody("<html><h1>registration</h1></html>".getBytes());
