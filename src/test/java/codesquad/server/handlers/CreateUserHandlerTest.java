@@ -3,6 +3,7 @@ package codesquad.server.handlers;
 import codesquad.http.Context;
 import codesquad.http.HttpRequest;
 import codesquad.http.HttpResponse;
+import codesquad.http.HttpStatus;
 import codesquad.model.User;
 import codesquad.utils.JsonConverter;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,13 +14,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CreateUserHandlerTest {
     String request = """
             POST /user/create HTTP/1.1
             Host: localhost:8080
             Connection: keep-alive
-            Content-Length: 59
+            Content-Length: 93
             Content-Type: application/x-www-form-urlencoded
             Accept: */*
                         
@@ -45,6 +47,8 @@ class CreateUserHandlerTest {
         CreateUserHandler.createUser(ctx);
 
         assertArrayEquals(user, res.getBody());
+
+        assertEquals(HttpStatus.REDIRECT_MOVE_PERMANENTLY.getCode(), res.getStatusCode());
     }
 
 }
