@@ -2,17 +2,12 @@ package codesquad.http;
 
 import codesquad.http.handler.Handler;
 import codesquad.http.router.Router;
-import codesquad.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -64,7 +59,7 @@ public class Server {
             </html>
             """;
 
-    public Server(int port, int threadPoolSize) {
+    private Server(int port, int threadPoolSize) {
         this.port = port;
         this.threadPoolSize = threadPoolSize;
         this.threadPool = Executors.newFixedThreadPool(this.threadPoolSize);
@@ -83,6 +78,9 @@ public class Server {
         router.staticFiles(path, staticPath);
     }
 
+    public static Server defaultServer(int port, int threadPoolSize) {
+        return new Server(port, threadPoolSize);
+    }
     private void addRoute(String method, String path, Handler handler) {
         router.addRoute(method, path, handler);
     }
@@ -126,21 +124,5 @@ public class Server {
         } catch (IOException e) {
             logger.error("Error Handling Request", e);
         }
-    }
-
-    // 지워질 DB 코드
-    public static void addUser(User user) {
-        db.put(user.getUserId(), user);
-    }
-
-    public static Optional<User> getUser(String userId) {
-        return Optional.ofNullable(db.get(userId));
-    }
-
-    public static int addSession(String userId) {
-        Random random = new Random();
-        int sessionId = random.nextInt(1000);
-        session.computeIfAbsent(sessionId, k -> userId);
-        return sessionId;
     }
 }

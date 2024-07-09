@@ -35,7 +35,7 @@ class ServerTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        server = new Server(port, THREAD_POOL_SIZE);
+        server = Server.defaultServer(port, THREAD_POOL_SIZE);
         executorService = Executors.newSingleThreadExecutor();
     }
 

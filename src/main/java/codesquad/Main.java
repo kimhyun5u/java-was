@@ -15,7 +15,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-        Server server = new Server(PORT, THREAD_POOL_SIZE);
+        Server server = Server.defaultServer(PORT, THREAD_POOL_SIZE);
 
         server.post("/user/create", UserHandler::createUser);
         server.post("/user/login", UserHandler::login);
