@@ -48,7 +48,7 @@ class CreateUserHandlerTest {
 
         assertArrayEquals(user, res.getBody());
 
-        assertEquals(HttpStatus.REDIRECT_MOVE_PERMANENTLY.getCode(), res.getStatusCode());
+        assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
     }
 
 }
