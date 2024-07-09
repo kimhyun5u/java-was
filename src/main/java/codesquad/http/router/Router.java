@@ -4,12 +4,11 @@ import codesquad.http.Context;
 import codesquad.http.HttpStatus;
 import codesquad.http.MIME;
 import codesquad.http.handler.Handler;
+import codesquad.utils.ResourceResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,7 +46,7 @@ public class Router {
             if (path.startsWith(entry.getKey())) {
                 if (path.equals("/")) {
                     path = ROOT_PATH;
-                } else if ("".equals(getFileExtension(path))) {
+                } else if (ResourceResolver.getFileExtension(path).isEmpty()) {
                     path += ROOT_PATH;
                 }
 
@@ -66,41 +65,12 @@ public class Router {
     }
 
     private Handler createStaticFileHandler(String path) throws IOException {
-        byte[] file = readResourceFileAsBytes(path);
+        byte[] file = ResourceResolver.readResourceFileAsBytes(path);
         return (Context ctx) -> {
             ctx.response().setBody(file);
-            ctx.response().addHeader("Content-Type", MIME.getMIMEType(getFileExtension(path)));
+            ctx.response().addHeader("Content-Type", MIME.getMIMEType(ResourceResolver.getFileExtension(path)));
             ctx.response().addHeader("Content-Length", String.valueOf(file.length));
             ctx.response().setStatus(HttpStatus.OK);
         };
     }
-
-
-    protected byte[] readResourceFileAsBytes(String resourcePath) throws IOException {
-        try (InputStream is = getClass().getResourceAsStream(resourcePath);
-             ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-
-            if (is == null) {
-                throw new IOException("Resource not found: " + resourcePath);
-            }
-
-            int nRead;
-            byte[] data = new byte[4096];
-
-            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-
-            return buffer.toByteArray();
-        }
-    }
-
-    protected String getFileExtension(String path) {
-        int lastIndexOf = path.lastIndexOf(".");
-        if (lastIndexOf == -1) {
-            return ""; // 확장자가 없는 경우
-        }
-        return path.substring(lastIndexOf + 1);
-    }
-
 }

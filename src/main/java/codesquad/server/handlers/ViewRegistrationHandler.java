@@ -3,10 +3,8 @@ package codesquad.server.handlers;
 import codesquad.http.Context;
 import codesquad.http.HttpStatus;
 import codesquad.server.db.SessionRepository;
+import codesquad.utils.ResourceResolver;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 public class ViewRegistrationHandler {
@@ -28,35 +26,14 @@ public class ViewRegistrationHandler {
                 ctx.response()
                         .addHeader("Content-Type", "text/html")
                         .setStatus(HttpStatus.OK)
-                        .setBody(readResourceFileAsBytes("/static/main/index.html"));
+                        .setBody(ResourceResolver.readResourceFileAsBytes("/static/main/index.html"));
                 return;
             }
         }
         ctx.response()
                 .addHeader("Content-Type", "text/html")
-                .setBody(readResourceFileAsBytes("/static/index.html"))
+                .setBody(ResourceResolver.readResourceFileAsBytes("/static/index.html"))
                 .setStatus(HttpStatus.OK)
         ;
-    }
-
-    private static byte[] readResourceFileAsBytes(String resourcePath) {
-        try (InputStream is = ViewRegistrationHandler.class.getResourceAsStream(resourcePath);
-             ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-
-            if (is == null) {
-                throw new IOException("Resource not found: " + resourcePath);
-            }
-
-            int nRead;
-            byte[] data = new byte[4096];
-
-            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-
-            return buffer.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
