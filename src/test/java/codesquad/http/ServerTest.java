@@ -1,11 +1,14 @@
 package codesquad.http;
 
+import codesquad.server.handlers.CreateUserHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,19 +18,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ServerTest {
 
-    private static final int PORT = 9000;
     private static final int THREAD_POOL_SIZE = 10;
+    private int port = 9000;
     private Server server;
     private ExecutorService executorService;
 
     @BeforeEach
-    void setUp() {
-        server = new Server(PORT, THREAD_POOL_SIZE);
+    void setUp() {// 사용 가능한 랜덤 포트 찾기
+
+        try (ServerSocket socket = new ServerSocket(0)) {
+            port = socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        server = new Server(port, THREAD_POOL_SIZE);
         executorService = Executors.newSingleThreadExecutor();
     }
 
     @AfterEach
     void tearDown() throws InterruptedException {
+        // ExecutorService 종료
         executorService.shutdownNow();
         executorService.awaitTermination(5, TimeUnit.SECONDS);
     }
@@ -55,7 +65,7 @@ class ServerTest {
         Thread.sleep(1000);
 
         // HTTP 요청 보내기
-        URL url = new URL("http://localhost:" + PORT + "/test");
+        URL url = new URL("http://localhost:" + port + "/test");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
@@ -80,12 +90,12 @@ class ServerTest {
 
         Thread.sleep(1000);
 
-        URL url = new URL("http://localhost:" + PORT + "/nonexistent");
+        URL url = new URL("http://localhost:" + port + "/nonexistent");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
         int responseCode = connection.getResponseCode();
-        assertEquals(HttpStatus.BAD_REQUEST.getCode(), responseCode);
+        assertEquals(HttpStatus.NOT_FOUND.getCode(), responseCode);
 
         connection.disconnect();
     }
