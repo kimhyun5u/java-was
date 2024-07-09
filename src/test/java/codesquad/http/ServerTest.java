@@ -1,6 +1,8 @@
 package codesquad.http;
 
+import codesquad.model.User;
 import codesquad.server.handlers.CreateUserHandler;
+import codesquad.utils.JsonConverter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ServerTest {
@@ -123,6 +126,8 @@ class ServerTest {
 
     @Test
     void testCreateUser() throws IOException {
+        byte[] expect = JsonConverter.toJson(new User("javajigi", "password", "박재성")).getBytes();
+        server.staticFiles("/", "/static");
         server.post("/create", CreateUserHandler::createUser);
 
         executorService.submit(() ->
@@ -139,10 +144,12 @@ class ServerTest {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Host", "localhost:8080");
         conn.setRequestProperty("Connection", "keep-alive");
-        conn.setRequestProperty("Content-Length", "59");
+        conn.setRequestProperty("Content-Length", "93");
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         conn.setRequestProperty("Accept", "*/*");
         conn.setDoOutput(true);
+        // redirect 방지
+        conn.setInstanceFollowRedirects(false);
         String formData = "userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net";
 
         // 데이터 쓰기
@@ -151,6 +158,8 @@ class ServerTest {
             os.flush();
         }
 
-        assertEquals(HttpStatus.CREATED.getCode(), conn.getResponseCode());
+        assertEquals("POST", conn.getRequestMethod());
+        assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), conn.getResponseCode());
+        assertArrayEquals(expect, conn.getInputStream().readAllBytes());
     }
 }
