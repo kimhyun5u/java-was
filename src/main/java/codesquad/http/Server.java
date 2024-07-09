@@ -2,17 +2,23 @@ package codesquad.http;
 
 import codesquad.http.handler.Handler;
 import codesquad.http.router.Router;
+import codesquad.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
+    private static final Map<Integer, String> session = new HashMap<>(); // 지워질 코드
+    private static final Map<String, User> db = new HashMap<>(); // 지워질 코드
     private final int port;
     private final int threadPoolSize;
     private final ExecutorService threadPool;
@@ -121,5 +127,20 @@ public class Server {
         } catch (IOException e) {
             logger.error("Error Handling Request", e);
         }
+    }
+
+    // 지워질 DB 코드
+    public static void addUser(User user) {
+        db.put(user.getUserId(), user);
+    }
+
+    public static Optional<User> getUser(String userId) {
+        return Optional.ofNullable(db.get(userId));
+    }
+
+    public static int addSession(String userId) {
+        int sessionId = (int) (Math.random() * 1000);
+        session.computeIfAbsent(sessionId, k -> userId);
+        return sessionId;
     }
 }
