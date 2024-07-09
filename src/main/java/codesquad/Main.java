@@ -1,7 +1,7 @@
 package codesquad;
 
 import codesquad.http.Server;
-import codesquad.server.handlers.CreateUserHandler;
+import codesquad.server.handlers.UserHandler;
 import codesquad.server.handlers.ViewRegistrationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,8 @@ public class Main {
     public static void main(String[] args) {
         Server server = new Server(PORT, THREAD_POOL_SIZE);
 
-        server.post("/user/create", CreateUserHandler::createUser);
+        server.post("/user/create", UserHandler::createUser);
+        server.post("/user/login", UserHandler::login);
         server.get("/register.html", ViewRegistrationHandler::viewRegistration);
         server.staticFiles("/", "/static");
 
