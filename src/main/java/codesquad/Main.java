@@ -3,7 +3,7 @@ package codesquad;
 import codesquad.http.HttpStatus;
 import codesquad.http.Server;
 import codesquad.server.handlers.UserHandler;
-import codesquad.server.handlers.ViewRegistrationHandler;
+import codesquad.server.handlers.ViewHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +18,12 @@ public class Main {
     public static void main(String[] args) {
         Server server = Server.defaultServer(PORT, THREAD_POOL_SIZE);
 
-
         server.post("/user/create", UserHandler::createUser);
         server.post("/user/login", UserHandler::login);
-        server.get("/register.html", ViewRegistrationHandler::viewRegistration);
-        server.get("/", ViewRegistrationHandler::getIndexPage);
+        server.get("/register.html", ViewHandler::getRegistrationPage);
+        server.get("/", ViewHandler::getIndexPage);
         server.post("/user/logout", UserHandler::logout);
+        server.get("/user/list", UserHandler::getUsers);
         server.get("/user/login_failed", ctx ->
                 ctx.response()
                         .setStatus(HttpStatus.OK)

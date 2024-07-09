@@ -1,5 +1,6 @@
 package codesquad.db;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,5 +26,9 @@ public class Database {
 
     public static void remove(String dbname, Object key) {
         db.get(dbname).remove(key);
+    }
+
+    public static List<Object> getList(String dbname) {
+        return db.get(dbname).values().stream().toList();
     }
 }

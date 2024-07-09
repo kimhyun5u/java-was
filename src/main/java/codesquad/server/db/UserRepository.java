@@ -3,6 +3,7 @@ package codesquad.server.db;
 import codesquad.db.Database;
 import codesquad.model.User;
 
+import java.util.List;
 import java.util.Optional;
 
 public class UserRepository {
@@ -17,5 +18,12 @@ public class UserRepository {
 
     public static Optional<User> getUser(String userId) {
         return Optional.ofNullable((User) Database.get(DBNAME, userId).orElse(null));
+    }
+
+    public static List<User> getUsers() {
+        return Database.getList(DBNAME).stream()
+                .filter(User.class::isInstance)
+                .map(User.class::cast)
+                .toList();
     }
 }

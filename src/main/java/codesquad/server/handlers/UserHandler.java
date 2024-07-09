@@ -70,4 +70,34 @@ public class UserHandler {
                 .addHeader("Content-Type", "text/html")
                 .setBody("Logout failed".getBytes());
     }
+
+    public static void getUsers(Context ctx) {
+        if (isLogin(ctx)) {
+            var htmlBuilder = new StringBuilder();
+            htmlBuilder.append("<html><body><h1>사용자 목록</h1><ul>");
+            UserRepository.getUsers().forEach(user -> htmlBuilder.append("<li>").append(user.getUserId()).append("</li>"));
+            htmlBuilder.append("</ul></body></html>");
+
+            ctx.response()
+                    .setStatus(HttpStatus.OK)
+                    .addHeader("Content-Type", "text/html")
+                    .setBody(htmlBuilder.toString().getBytes());
+            return;
+        }
+
+        ctx.response()
+                .setStatus(HttpStatus.REDIRECT_FOUND)
+                .addHeader("Location", "/login");
+
+    }
+
+    private static boolean isLogin(Context ctx) {
+        Optional<String> cookie = ctx.request().getHeader("Cookie");
+        if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
+            int sid = Integer.parseInt(cookie.get().split("=")[1]);
+            return SessionRepository.isValid(sid);
+        }
+
+        return false;
+    }
 }
