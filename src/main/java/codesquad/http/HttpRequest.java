@@ -49,57 +49,78 @@ public class HttpRequest {
     }
 
     public static HttpRequest from(InputStream is) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+        List<String> headerLines = new ArrayList<>();
+        StringBuilder bodyBuilder = new StringBuilder();
         String line;
-        List<String> lines = new ArrayList<>();
+
+        // 헤더 읽기
         while ((line = br.readLine()) != null && !line.isEmpty()) {
-            lines.add(line);
+            headerLines.add(line);
         }
 
-        // Request Line Parser
-        String[] requestLine = lines.get(0).split(" ");
-        int headerCounter = 1;
-        Map<String, String> query = new HashMap<>();
+        // 본문 읽기
+        int contentLength = 0;
+        for (String headerLine : headerLines) {
+            if (headerLine.toLowerCase().startsWith("content-length:")) {
+                contentLength = Integer.parseInt(headerLine.split(":")[1].trim());
+                break;
+            }
+        }
+
+        if (contentLength > 0) {
+            char[] bodyChars = new char[contentLength];
+            br.read(bodyChars);
+            bodyBuilder.append(bodyChars);
+        }
+
+        String body = bodyBuilder.toString();
+
+        // 요청 라인 파싱
+        String[] requestLine = headerLines.get(0).split(" ");
+        String method = requestLine[0];
         String target;
-        requestLine[1] = URLDecoder.decode(requestLine[1], "UTF-8");
-        if (requestLine[1].contains("?")) {
-            String[] requests = requestLine[1].split("\\?");
-            target = requests[0];
-            String queryLine = requests[1];
-            for (String s : queryLine.split("&")) {
-                s = s.trim();
-                String[] split = s.split("=");
+        Map<String, String> query = new HashMap<>();
 
-                query.put(split[0], split[1]);
-            }
+        // URL 디코딩 및 쿼리 파싱
+        String decodedUrl = URLDecoder.decode(requestLine[1], "UTF-8");
+        if (decodedUrl.contains("?")) {
+            String[] urlParts = decodedUrl.split("\\?", 2);
+            target = urlParts[0];
+            parseQueryString(urlParts[1], query);
         } else {
-            target = requestLine[1];
+            target = decodedUrl;
         }
 
-        // Header Parse
+        // 헤더 파싱
         Map<String, String> headers = new HashMap<>();
-        while (headerCounter < lines.size() && !lines.get(headerCounter).isEmpty()) {
-            String[] header = lines.get(headerCounter++).split(":");
-            headers.put(header[0].trim(), header[1].trim());
+        for (int i = 1; i < headerLines.size(); i++) {
+            String[] header = headerLines.get(i).split(":", 2);
+            if (header.length == 2) {
+                headers.put(header[0].trim(), header[1].trim());
+            }
         }
 
-        // Body Parse
-        String body = "";
-        if (headers.get("Content-Length") != null) {
-            lines.clear();
-            while ((line = br.readLine()) != null && !line.isEmpty()) {
-                lines.add(line);
+        // POST 요청 처리
+        if ("POST".equalsIgnoreCase(method) && body.length() > 0) {
+            String contentType = headers.getOrDefault("Content-Type", "").toLowerCase();
+            if (contentType.contains("application/x-www-form-urlencoded")) {
+                parseQueryString(body, query);
             }
-
-            StringBuilder bodyBuilder = new StringBuilder();
-            for (String l : lines) {
-                bodyBuilder.append(l);
-                bodyBuilder.append("\n");
-            }
-            body = bodyBuilder.toString();
+            // 다른 Content-Type (예: application/json)에 대한 처리는 여기에 추가할 수 있습니다.
         }
 
+        return new HttpRequest(method, requestLine[2], body, target, query, headers);
+    }
 
-        return new HttpRequest(requestLine[0], requestLine[2], body, target, query, headers);
+    private static void parseQueryString(String queryString, Map<String, String> query) {
+        for (String param : queryString.split("&")) {
+            String[] keyValue = param.split("=", 2);
+            if (keyValue.length == 2) {
+                query.put(keyValue[0], keyValue[1]);
+            } else if (keyValue.length == 1) {
+                query.put(keyValue[0], "");
+            }
+        }
     }
 }
