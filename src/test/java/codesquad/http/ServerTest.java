@@ -89,4 +89,58 @@ class ServerTest {
 
         connection.disconnect();
     }
+
+    @Test
+    void testCreateUserFailure() throws IOException {
+        server.post("/create", CreateUserHandler::createUser);
+
+        executorService.submit(() ->
+        {
+            try {
+                server.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        URL url = new URL("http://localhost:" + port + "/create?userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Host", "localhost:8080");
+        conn.setRequestProperty("Connection", "keep-alive");
+        assertEquals(HttpStatus.NOT_FOUND.getCode(), conn.getResponseCode());
+    }
+
+    @Test
+    void testCreateUser() throws IOException {
+        server.post("/create", CreateUserHandler::createUser);
+
+        executorService.submit(() ->
+        {
+            try {
+                server.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        URL url = new URL("http://localhost:" + port + "/create");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Host", "localhost:8080");
+        conn.setRequestProperty("Connection", "keep-alive");
+        conn.setRequestProperty("Content-Length", "59");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty("Accept", "*/*");
+        conn.setDoOutput(true);
+        String formData = "userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net";
+
+        // 데이터 쓰기
+        try (BufferedOutputStream os = new BufferedOutputStream(conn.getOutputStream())) {
+            os.write(formData.getBytes());
+            os.flush();
+        }
+
+        assertEquals(HttpStatus.CREATED.getCode(), conn.getResponseCode());
+    }
 }
