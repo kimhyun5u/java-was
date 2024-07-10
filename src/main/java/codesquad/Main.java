@@ -23,7 +23,7 @@ public class Main {
         server.get("/register.html", ViewHandler::getRegistrationPage);
         server.get("/", ViewHandler::getIndexPage);
         server.post("/user/logout", UserHandler::logout);
-        server.get("/user/list", UserHandler::getUsers);
+        server.get("/user/list", ViewHandler::getUserListPage);
         server.get("/user/login_failed", ctx ->
                 ctx.response()
                         .setStatus(HttpStatus.OK)
