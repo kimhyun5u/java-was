@@ -36,11 +36,17 @@ public class ViewHandler {
                 return;
             }
             if (SessionRepository.getSession(sid) != null) {
-                ctx.response()
-                        .addHeader("Content-Type", "text/html")
-                        .setStatus(HttpStatus.OK)
-                        .setBody(ResourceResolver.readResourceFileAsBytes("/static/main/index.html"));
-                return;
+                String template = new String(ResourceResolver.readResourceFileAsBytes("/static/main/index.html"));
+                Optional<User> user = UserRepository.getUser(SessionRepository.getSession(sid));
+                if (user.isPresent()) {
+
+                    String body = template.replace("{{username}}", user.get().getName());
+                    ctx.response()
+                            .addHeader("Content-Type", "text/html")
+                            .setStatus(HttpStatus.OK)
+                            .setBody(body.getBytes());
+                    return;
+                }
             }
         }
         ctx.response()
