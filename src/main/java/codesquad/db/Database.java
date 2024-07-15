@@ -14,6 +14,7 @@ public class Database {
     static {
         db.put("users", new ConcurrentHashMap<>());
         db.put("sessions", new ConcurrentHashMap<>());
+        db.put("articles", new ConcurrentHashMap<>());
         db.get("users").put("1234", new User("1234", "1234", "name", "2222@gmail.com"));
     }
 

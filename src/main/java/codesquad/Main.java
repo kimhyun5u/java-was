@@ -2,6 +2,7 @@ package codesquad;
 
 import codesquad.http.HttpStatus;
 import codesquad.http.Server;
+import codesquad.server.handlers.ArticleHandler;
 import codesquad.server.handlers.UserHandler;
 import codesquad.server.handlers.ViewHandler;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public class Main {
         server.post("/user/logout", UserHandler::logout);
         server.get("/user/list", ViewHandler::getUserListPage);
         server.get("/write", ViewHandler::getWritePage);
+        server.post("/write", ArticleHandler::write);
         server.get("/user/login_failed", ctx ->
                 ctx.response()
                         .setStatus(HttpStatus.OK)

@@ -10,6 +10,8 @@ import codesquad.utils.ResourceResolver;
 import java.util.List;
 import java.util.Optional;
 
+import static codesquad.utils.AuthenticationResolver.isLogin;
+
 public class ViewHandler {
     private ViewHandler() {
     }
@@ -98,15 +100,5 @@ public class ViewHandler {
         context.response()
                 .setStatus(HttpStatus.REDIRECT_FOUND)
                 .addHeader("Location", "/login");
-    }
-
-    private static boolean isLogin(Context ctx) {
-        Optional<String> cookie = ctx.request().getHeader("Cookie");
-        if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
-            int sid = Integer.parseInt(cookie.get().split("=")[1]);
-            return SessionRepository.isValid(sid);
-        }
-
-        return false;
     }
 }

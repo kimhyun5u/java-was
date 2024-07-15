@@ -45,6 +45,10 @@ public class HttpRequest {
         return version;
     }
 
+    public String getBody() {
+        return body;
+    }
+
     public static HttpRequest from(InputStream is) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
         List<String> headerLines = new ArrayList<>();
