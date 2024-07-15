@@ -22,6 +22,7 @@ public class Main {
         server.get("/", ViewHandler::getIndexPage);
         server.post("/user/logout", UserHandler::logout);
         server.get("/user/list", ViewHandler::getUserListPage);
+        server.get("/write", ViewHandler::getWritePage);
         server.get("/user/login_failed", ctx ->
                 ctx.response()
                         .setStatus(HttpStatus.OK)
