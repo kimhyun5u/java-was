@@ -7,8 +7,6 @@ import codesquad.server.handlers.ViewHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private static final int PORT = 8080;
@@ -36,10 +34,8 @@ public class Main {
                         .setBody("Logout failed".getBytes()));
         server.staticFiles("/", "/static");
 
-        try {
-            server.start();
-        } catch (IOException e) {
-            logger.error("Failed to start HTTP server", e);
-        }
+
+        server.start();
+
     }
 }

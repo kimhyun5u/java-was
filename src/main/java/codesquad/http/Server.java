@@ -17,6 +17,7 @@ public class Server {
     private final int threadPoolSize;
     private final ExecutorService threadPool;
     private final Router router;
+    private ServerSocket serverSocket;
     String notFoundHtml = """
             <!DOCTYPE html>
             <html lang="en">
@@ -85,8 +86,9 @@ public class Server {
         router.addRoute(method, path, handler);
     }
 
-    public void start() throws IOException {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+    public void start() {
+        try {
+            serverSocket = new ServerSocket(port);
             Runtime.getRuntime().addShutdownHook(new Thread(threadPool::shutdown));
 
             // init MIME
@@ -98,6 +100,8 @@ public class Server {
                 Socket clientSocket = serverSocket.accept();
                 threadPool.submit(() -> handleRequest(clientSocket));
             }
+        } catch (IOException e) {
+            logger.error("Error Starting Server", e);
         }
     }
 
@@ -124,5 +128,18 @@ public class Server {
         } catch (IOException e) {
             logger.error("Error Handling Request", e);
         }
+    }
+
+    public boolean isConnected() {
+        return serverSocket != null && serverSocket.isBound();
+    }
+
+    public boolean isClose() {
+        return serverSocket != null || serverSocket.isClosed();
+    }
+
+    public void stop() throws IOException {
+        serverSocket.close();
+        threadPool.shutdown();
     }
 }
