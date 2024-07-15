@@ -1,5 +1,7 @@
 package codesquad.db;
 
+import codesquad.model.User;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,7 @@ public class Database {
     static {
         db.put("users", new ConcurrentHashMap<>());
         db.put("sessions", new ConcurrentHashMap<>());
+        db.get("users").put("1234", new User("1234", "1234", "name", "2222@gmail.com"));
     }
 
     private Database() {
