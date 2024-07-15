@@ -85,6 +85,21 @@ public class ViewHandler {
 
     }
 
+
+    public static void getWritePage(Context context) {
+        if (isLogin(context)) {
+            context.response()
+                    .setStatus(HttpStatus.OK)
+                    .addHeader("Content-Type", "text/html")
+                    .setBody(ResourceResolver.readResourceFileAsBytes("/static/article/index.html"));
+            return;
+        }
+
+        context.response()
+                .setStatus(HttpStatus.REDIRECT_FOUND)
+                .addHeader("Location", "/login");
+    }
+
     private static boolean isLogin(Context ctx) {
         Optional<String> cookie = ctx.request().getHeader("Cookie");
         if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
