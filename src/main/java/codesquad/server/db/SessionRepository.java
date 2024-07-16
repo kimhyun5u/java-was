@@ -15,7 +15,7 @@ public class SessionRepository {
 
     public static int addSession(String userId) {
         int sid = r.nextInt(MAX_SESSION_SIZE);
-        Database.add(DBNAME, sid, userId);
+        Database.save(DBNAME, sid, userId);
         return sid;
     }
 

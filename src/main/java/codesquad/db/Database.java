@@ -21,7 +21,7 @@ public class Database {
     private Database() {
     }
 
-    public static void add(String dbname, Object key, Object value) {
+    public static void save(String dbname, Object key, Object value) {
         db.compute(dbname, (k, v) -> {
             if (v == null) {
                 v = new ConcurrentHashMap<>();
