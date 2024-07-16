@@ -11,9 +11,9 @@ public class AuthenticationResolver {
     }
 
     public static boolean isLogin(Context ctx) {
-        Optional<String> cookie = ctx.request().getHeader("Cookie");
+        Optional<String> cookie = ctx.request().getCookie("sid");
         if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
-            int sid = Integer.parseInt(cookie.get().split("=")[1]);
+            int sid = Integer.parseInt(cookie.get());
             return SessionRepository.isValid(sid);
         }
 
@@ -22,9 +22,9 @@ public class AuthenticationResolver {
 
     public static Object getUserDetail(Context ctx) {
         String username = null;
-        Optional<String> cookie = ctx.request().getHeader("Cookie");
+        Optional<String> cookie = ctx.request().getCookie("sid");
         if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
-            int sid = Integer.parseInt(cookie.get().split("=")[1]);
+            int sid = Integer.parseInt(cookie.get());
             if (SessionRepository.isValid(sid)) { // 유효한 세션인지 확인
                 username = SessionRepository.getSession(sid);
 

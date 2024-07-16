@@ -2,7 +2,10 @@ package codesquad.server.handlers;
 
 import codesquad.http.Context;
 import codesquad.http.HttpStatus;
+import codesquad.model.Article;
+import codesquad.model.Comment;
 import codesquad.model.User;
+import codesquad.server.db.ArticleRepository;
 import codesquad.server.db.SessionRepository;
 import codesquad.server.db.UserRepository;
 import codesquad.utils.ResourceResolver;
@@ -24,15 +27,23 @@ public class ViewHandler {
     }
 
     public static void getIndexPage(Context ctx) {
-        Optional<String> cookie = ctx.request().getHeader("Cookie");
+        int now;
+        Optional<String> page = ctx.request().getCookie("page");
+        now = page.map(Integer::parseInt).orElse(1);
+
+        ctx.response().addHeader("Set-Cookie", "page=" + now + "; Path=/; HttpOnly");
+
+        Optional<String> sidCookie = ctx.request().getCookie("sid");
         int sid;
-        if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
+        if (sidCookie.isPresent()) { // 쿠키가 있으면 세션 확인
             try { // 쿠키가 숫자가 아닌 경우 예외처리
-                sid = Integer.parseInt(cookie.get().split("=")[1]);
+                sid = Integer.parseInt(sidCookie.get());
             } catch (NumberFormatException e) {
+                String template = new String(ResourceResolver.readResourceFileAsBytes("/static/index.html"));
+
                 ctx.response()
                         .addHeader("Content-Type", "text/html")
-                        .setBody(ResourceResolver.readResourceFileAsBytes("/static/index.html"))
+                        .setBody(template.replace("{{post}}", getArticleHtml(now)).getBytes())
                         .setStatus(HttpStatus.OK)
                 ;
                 return;
@@ -43,6 +54,8 @@ public class ViewHandler {
                 if (user.isPresent()) {
 
                     String body = template.replace("{{username}}", user.get().getName());
+                    body = body.replace("{{post}}", getArticleHtml(now));
+
                     ctx.response()
                             .addHeader("Content-Type", "text/html")
                             .setStatus(HttpStatus.OK)
@@ -51,9 +64,11 @@ public class ViewHandler {
                 }
             }
         }
+        String template = new String(ResourceResolver.readResourceFileAsBytes("/static/index.html"));
+
         ctx.response()
                 .addHeader("Content-Type", "text/html")
-                .setBody(ResourceResolver.readResourceFileAsBytes("/static/index.html"))
+                .setBody(template.replace("{{post}}", getArticleHtml(now)).getBytes())
                 .setStatus(HttpStatus.OK)
         ;
     }
@@ -100,5 +115,91 @@ public class ViewHandler {
         context.response()
                 .setStatus(HttpStatus.REDIRECT_FOUND)
                 .addHeader("Location", "/login");
+    }
+
+    private static String getArticleHtml(int id) {
+        String articleTemplate = """
+                        <div class="post">
+                          <div class="post__account">
+                            <img class="post__account__img" />
+                            <p class="post__account__nickname">{{username}}</p>
+                          </div>
+                          <img class="post__img" />
+                          <div class="post__menu">
+                            <ul class="post__menu__personal">
+                              <li>
+                                <button class="post__menu__btn">
+                                  <img src="../img/like.svg" />
+                                </button>
+                              </li>
+                              <li>
+                                <button class="post__menu__btn">
+                                  <img src="../img/sendLink.svg" />
+                                </button>
+                              </li>
+                            </ul>
+                            <button class="post__menu__btn">
+                              <img src="../img/bookMark.svg" />
+                            </button>
+                          </div>
+                          <p class="post__article">
+                            {{content}}
+                          </p>
+                        </div>
+                        <ul class="comment">
+                          {{comments}}
+                        </ul>
+                        <nav class="nav">
+                          <ul class="nav__menu">
+                            <li class="nav__menu__item">
+                              <a class="nav__menu__item__btn" href="">
+                                <img
+                                  class="nav__menu__item__img"
+                                  src="./img/ci_chevron-left.svg"
+                                />
+                                이전 글
+                              </a>
+                            </li>
+                            <li class="nav__menu__item">
+                              <a class="btn btn_ghost btn_size_m" href="/comment">댓글 작성</a>
+                            </li>
+                            <li class="nav__menu__item">
+                              <a class="nav__menu__item__btn" href="">
+                                다음 글
+                                <img
+                                  class="nav__menu__item__img"
+                                  src="./img/ci_chevron-right.svg"
+                                />
+                              </a>
+                            </li>
+                          </ul>
+                        </nav>
+                """;
+
+        Article article = ArticleRepository.getArticle(id);
+        if (article == null) {
+            return "";
+        }
+        return articleTemplate.replace("{{username}}", article.getUser().getName())
+                .replace("{{content}}", article.getContent()).replace("{{comments}}", getCommentListHtml(article.getComments()));
+    }
+
+    private static String getCommentListHtml(List<Comment> comments) {
+        String commentTemplate = """
+                <li class="comment__item">
+                            <div class="comment__item__user">
+                              <img class="comment__item__user__img" />
+                              <p class="comment__item__user__nickname">{{username}}</p>
+                            </div>
+                            <p class="comment__item__article">
+                              {{content}}
+                            </p>
+                          </li>""";
+        StringBuilder commentListHtml = new StringBuilder();
+        for (var comment : comments) {
+            commentListHtml.append(commentTemplate.replace("{{username}}", comment.getUser().getName())
+                    .replace("{{content}}", comment.getContent()));
+        }
+        return commentListHtml.toString();
     }
 }

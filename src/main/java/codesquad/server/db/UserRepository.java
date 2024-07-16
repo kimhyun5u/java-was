@@ -13,7 +13,7 @@ public class UserRepository {
     }
 
     public static void addUser(User user) {
-        Database.add(DBNAME, user.getUserId(), user);
+        Database.save(DBNAME, user.getUserId(), user);
     }
 
     public static Optional<User> getUser(String userId) {
