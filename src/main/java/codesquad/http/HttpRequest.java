@@ -11,14 +11,16 @@ public class HttpRequest {
     private final Map<String, String> query;
     private final String body;
     private final Map<String, String> headers;
+    private final Map<String, String> cookies;
 
-    public HttpRequest(String method, String version, String body, String path, Map<String, String> query, Map<String, String> headers) {
+    public HttpRequest(String method, String version, String body, String path, Map<String, String> query, Map<String, String> headers, Map<String, String> cookies) {
         this.method = method;
         this.version = version;
         this.body = body;
         this.path = path;
         this.query = query;
         this.headers = headers;
+        this.cookies = cookies;
     }
 
     public String getMethod() {
@@ -60,6 +62,7 @@ public class HttpRequest {
             headerLines.add(line);
         }
 
+        Map<String, String> cookies = new HashMap<>();
         // 본문 읽기
         int contentLength = 0;
         for (String headerLine : headerLines) {
@@ -100,6 +103,15 @@ public class HttpRequest {
             if (header.length == 2) {
                 headers.put(header[0].trim(), header[1].trim());
             }
+            if ("cookie".equalsIgnoreCase(header[0])) {
+                String[] cookieParts = header[1].split(";");
+                for (String cookiePart : cookieParts) {
+                    String[] keyValue = cookiePart.split("=", 2);
+                    if (keyValue.length == 2) {
+                        cookies.put(keyValue[0].trim(), keyValue[1].trim());
+                    }
+                }
+            }
         }
 
         // POST 요청 처리
@@ -111,7 +123,7 @@ public class HttpRequest {
             // 다른 Content-Type (예: application/json)에 대한 처리는 여기에 추가할 수 있습니다.
         }
 
-        return new HttpRequest(method, requestLine[2], body, target, query, headers);
+        return new HttpRequest(method, requestLine[2], body, target, query, headers, cookies);
     }
 
     private static void parseQueryString(String queryString, Map<String, String> query) throws UnsupportedEncodingException {
@@ -123,5 +135,9 @@ public class HttpRequest {
                 query.put(keyValue[0], "");
             }
         }
+    }
+
+    public Optional<String> getCookie(String key) {
+        return Optional.ofNullable(cookies.get(key));
     }
 }
