@@ -42,7 +42,7 @@ public class UserHandler {
             ctx.response()
                     .setStatus(HttpStatus.REDIRECT_FOUND)
                     .addHeader("Location", "/")
-                    .addHeader("set-cookie", String.format("sid=%d; Path=/; Max-Age=86400; HttpOnly; Secure;", sid));
+                    .addHeader("set-cookie", String.format("sid=%d; Path=/; Max-Age=86400; HttpOnly;", sid));
         } else {
             ctx.response().setStatus(HttpStatus.UNAUTHORIZED);
         }
