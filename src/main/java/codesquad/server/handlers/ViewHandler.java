@@ -6,6 +6,7 @@ import codesquad.model.Article;
 import codesquad.model.Comment;
 import codesquad.model.User;
 import codesquad.server.db.ArticleRepository;
+import codesquad.server.db.CommentRepository;
 import codesquad.server.db.SessionRepository;
 import codesquad.server.db.UserRepository;
 import codesquad.utils.ResourceResolver;
@@ -26,7 +27,7 @@ public class ViewHandler {
 
     }
 
-    public static void getIndexPage(Context ctx) {
+    public static void getIndexPage(Context ctx) throws RuntimeException {
         int now;
         Optional<String> page = ctx.request().getCookie("page");
         now = page.map(Integer::parseInt).orElse(1);
@@ -177,11 +178,14 @@ public class ViewHandler {
                 """;
 
         Article article = ArticleRepository.getArticle(id);
+        List<Comment> comments = CommentRepository.getComments(id);
         if (article == null) {
             return "";
         }
-        return articleTemplate.replace("{{username}}", article.getUser().getName())
-                .replace("{{content}}", article.getContent()).replace("{{comments}}", getCommentListHtml(article.getComments()));
+        return articleTemplate.replace("{{username}}", article.getUsername())
+                .replace("{{content}}", article.getContent())
+                .replace("{{comments}}", getCommentListHtml(comments))
+                ;
     }
 
     private static String getCommentListHtml(List<Comment> comments) {
@@ -197,7 +201,7 @@ public class ViewHandler {
                           </li>""";
         StringBuilder commentListHtml = new StringBuilder();
         for (var comment : comments) {
-            commentListHtml.append(commentTemplate.replace("{{username}}", comment.getUser().getName())
+            commentListHtml.append(commentTemplate.replace("{{username}}", comment.getUsername())
                     .replace("{{content}}", comment.getContent()));
         }
         return commentListHtml.toString();
