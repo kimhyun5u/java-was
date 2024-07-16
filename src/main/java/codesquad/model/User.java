@@ -17,6 +17,10 @@ public class User {
         return userId;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     public String getName() {
         return name;
     }
@@ -27,5 +31,10 @@ public class User {
 
     public boolean checkPassword(String password) {
         return this.password.equals(password);
+    }
+
+    @Override
+    public String toString() {
+        return "(" + userId + ", " + password + ", " + name + ", " + email + ")";
     }
 }

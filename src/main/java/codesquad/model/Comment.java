@@ -1,27 +1,23 @@
 package codesquad.model;
 
-import java.util.Date;
-
 public class Comment {
-    private final User user;
+    private final String userId;
+    private final Long pageId;
+    private final String username;
     private final String content;
-    private final Date created;
 
-    public Comment(User user, String content) {
-        this.user = user;
+    public Comment(String userId, Long pageId, String username, String content) {
+        this.userId = userId;
+        this.pageId = pageId;
+        this.username = username;
         this.content = content;
-        this.created = new Date();
     }
 
-    public User getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
     public String getContent() {
         return content;
-    }
-
-    public Date getCreated() {
-        return created;
     }
 }

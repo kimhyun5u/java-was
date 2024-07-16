@@ -1,20 +1,23 @@
 package codesquad.model;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 public class Article {
-    private final List<Comment> comments;
-    private final User user;
+
+    private final String userId;
+    private final String username;
+    private Long id;
     private final String content;
-    private final Date created;
-    private long id;
-    public Article(User user, String content) {
-        this.user = user;
+
+    public Article(String userId, String username, String content) {
+        this.userId = userId;
+        this.username = username;
         this.content = content;
-        this.created = new Date();
-        comments = new ArrayList<>();
+    }
+
+    public Article(Long id, String userId, String username, String content) {
+        this.userId = userId;
+        this.username = username;
+        this.content = content;
+        this.id = id;
     }
 
     public long getId() {
@@ -25,24 +28,16 @@ public class Article {
         this.id = id;
     }
 
-    public void addComment(Comment comment) {
-        comments.add(comment);
+    public String getUserId() {
+        return userId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
     public String getContent() {
         return content;
-    }
-
-    public Date getCreated() {
-        return created;
-    }
-
-    public List<Comment> getComments() {
-        return comments;
     }
 }
 

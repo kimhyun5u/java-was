@@ -3,9 +3,9 @@ package codesquad.server.handlers;
 import codesquad.http.Context;
 import codesquad.http.HttpStatus;
 import codesquad.model.Article;
-import codesquad.model.Comment;
 import codesquad.model.User;
 import codesquad.server.db.ArticleRepository;
+import codesquad.server.db.CommentRepository;
 
 import java.util.Optional;
 
@@ -19,7 +19,7 @@ public class ArticleHandler {
     public static void write(Context ctx) {
         if (isLogin(ctx)) {
             User user = (User) getUserDetail(ctx);
-            ArticleRepository.addArticle(new Article(user, ctx.request().getQuery("content")));
+            ArticleRepository.addArticle(new Article(user.getUserId(), user.getName(), ctx.request().getQuery("content")));
             ctx.response()
                     .setStatus(HttpStatus.REDIRECT_FOUND)
                     .addHeader("Content-Type", "text/html")
@@ -38,10 +38,7 @@ public class ArticleHandler {
             User user = (User) getUserDetail(ctx);
             Optional<String> page = ctx.request().getCookie("page");
             if (page.isPresent()) {
-                Article article = ArticleRepository.getArticle(Long.parseLong(page.get()));
-                article.addComment(new Comment(user, ctx.request().getQuery("content")));
-
-                ArticleRepository.update(article);
+                CommentRepository.addComment(user, Long.parseLong(page.get()), ctx.request().getQuery("content"));
 
                 ctx.response()
                         .setStatus(HttpStatus.REDIRECT_FOUND)
