@@ -54,7 +54,7 @@ public class Router {
 
                 try {
                     return createStaticFileHandler(resourcePath);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     logger.error("Failed to load static file {}", resourcePath, e);
                     return null;
                 }
