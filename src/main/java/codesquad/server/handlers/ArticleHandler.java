@@ -63,4 +63,39 @@ public class ArticleHandler {
                     .setBody("Unauthorized".getBytes());
         }
     }
+
+    public void prevArticle(Context context) {
+        Optional<String> page = context.request().getCookie("page");
+        if (page.isPresent()) {
+            long prevPage = Long.parseLong(page.get()) - 1;
+            if (prevPage < 1) {
+                prevPage = 1;
+            }
+            context.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
+                    .addHeader("Set-Cookie", "page=" + prevPage + "; Path=/; HttpOnly;");
+        } else {
+            context.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
+                    .addHeader("set-cookie", "page=" + 1 + "; Path=/; HttpOnly;");
+        }
+    }
+
+    public void nextArticle(Context context) {
+        Optional<String> page = context.request().getCookie("page");
+        if (page.isPresent()) {
+            long nextPage = Long.parseLong(page.get()) + 1;
+            context.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
+                    .addHeader("set-cookie", "page=" + nextPage + "; Path=/; HttpOnly;");
+        } else {
+            context.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
+                    .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly;");
+        }
+    }
 }
