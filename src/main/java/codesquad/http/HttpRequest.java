@@ -1,10 +1,17 @@
 package codesquad.http;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class HttpRequest {
+    private static final int MAX_REQUEST_SIZE = 1024 * 10; // 10MB
     private final String method;
     private final String version;
     private final String path;
@@ -12,8 +19,9 @@ public class HttpRequest {
     private final String body;
     private final Map<String, String> headers;
     private final Map<String, String> cookies;
+    private final Map<String, Object> multipartFile;
 
-    public HttpRequest(String method, String version, String body, String path, Map<String, String> query, Map<String, String> headers, Map<String, String> cookies) {
+    public HttpRequest(String method, String version, String body, String path, Map<String, String> query, Map<String, String> headers, Map<String, String> cookies, Map<String, Object> multipartFile) {
         this.method = method;
         this.version = version;
         this.body = body;
@@ -21,6 +29,7 @@ public class HttpRequest {
         this.query = query;
         this.headers = headers;
         this.cookies = cookies;
+        this.multipartFile = multipartFile;
     }
 
     public String getMethod() {
@@ -52,54 +61,46 @@ public class HttpRequest {
     }
 
     public static HttpRequest from(InputStream is) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        List<String> headerLines = new ArrayList<>();
-        StringBuilder bodyBuilder = new StringBuilder();
-        String line;
-
-        // 헤더 읽기
-        while ((line = br.readLine()) != null && !line.isEmpty()) {
-            headerLines.add(line);
-        }
-
-        Map<String, String> cookies = new HashMap<>();
-        // 본문 읽기
-        int contentLength = 0;
-        for (String headerLine : headerLines) {
-            if (headerLine.toLowerCase().startsWith("content-length:")) {
-                contentLength = Integer.parseInt(headerLine.split(":")[1].trim());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final int Buffer_SIZE = 8192;
+        byte[] buffer = new byte[Buffer_SIZE];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            baos.write(buffer, 0, bytesRead);
+            if (baos.size() < Buffer_SIZE) {
                 break;
             }
         }
+        byte[] rawData = baos.toByteArray();
 
-        if (contentLength > 0) {
-            char[] bodyChars = new char[contentLength];
-            br.read(bodyChars);
-            bodyBuilder.append(bodyChars);
+        // 헤더와 바디 구분점 계산
+        int headerEnd = findSequence(rawData, "\r\n\r\n".getBytes(), 0);
+        if (headerEnd == -1) {
+            throw new IOException("Invalid HTTP request");
         }
 
-        String body = bodyBuilder.toString();
+        // 헤더 파싱
+        String headerStr = new String(rawData, 0, headerEnd, "UTF-8");
+        String[] headerLines = headerStr.split("\r\n");
 
         // 요청 라인 파싱
-        String[] requestLine = headerLines.get(0).split(" ");
-        String method = requestLine[0];
-        String target;
-        Map<String, String> query = new HashMap<>();
+        String[] requestLines = headerLines[0].split(" ");
+        String method = requestLines[0];
+        String target = URLDecoder.decode(requestLines[1], "UTF-8");
 
-        // URL 디코딩 및 쿼리 파싱
-        String decodedUrl = URLDecoder.decode(requestLine[1], "UTF-8");
-        if (decodedUrl.contains("?")) {
-            String[] urlParts = decodedUrl.split("\\?", 2);
+        // 쿼리 파싱
+        Map<String, String> query = new HashMap<>();
+        if (target.contains("?")) {
+            String[] urlParts = target.split("\\?", 2);
             target = urlParts[0];
             parseQueryString(urlParts[1], query);
-        } else {
-            target = decodedUrl;
         }
 
         // 헤더 파싱
         Map<String, String> headers = new HashMap<>();
-        for (int i = 1; i < headerLines.size(); i++) {
-            String[] header = headerLines.get(i).split(":", 2);
+        Map<String, String> cookies = new HashMap<>();
+        for (int i = 1; i < headerLines.length; i++) {
+            String[] header = headerLines[i].split(":", 2);
             if (header.length == 2) {
                 headers.put(header[0].trim(), header[1].trim());
             }
@@ -114,16 +115,106 @@ public class HttpRequest {
             }
         }
 
+        // 바디 파싱
+        byte[] bodyData = Arrays.copyOfRange(rawData, headerEnd + 4, rawData.length);
+        String body = "";
+
+        Map<String, Object> multipartData = new HashMap<>();
+
         // POST 요청 처리
-        if ("POST".equalsIgnoreCase(method) && !body.isEmpty()) {
+        if ("POST".equalsIgnoreCase(method)) {
             String contentType = headers.getOrDefault("Content-Type", "").toLowerCase();
             if (contentType.contains("application/x-www-form-urlencoded")) {
                 parseQueryString(body, query);
             }
             // 다른 Content-Type (예: application/json)에 대한 처리는 여기에 추가할 수 있습니다.
+            else if (contentType.contains("multipart/form-data")) {
+                // 멀티파트 폼 데이터 처리
+                String boundary = contentType.split("boundary=")[1];
+                multipartData = parseMultipartFormData(bodyData, boundary);
+            } else {
+                body = new String(bodyData, "UTF-8");
+            }
         }
 
-        return new HttpRequest(method, requestLine[2], body, target, query, headers, cookies);
+        return new HttpRequest(method, requestLines[2], body, target, query, headers, cookies, multipartData);
+    }
+
+    private static int findSequence(byte[] data, byte[] sequence, int start) {
+        for (int i = start; i <= data.length - sequence.length; i++) {
+            boolean found = true;
+            for (int j = 0; j < sequence.length; j++) {
+                if (data[i + j] != sequence[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static Map<String, Object> parseMultipartFormData(byte[] bodyData, String boundary) throws IOException {
+        Map<String, Object> result = new HashMap<>();
+        byte[] boundaryBytes = ("\r\n--" + boundary).getBytes("UTF-8");
+        int start = 0;
+
+        while (start < bodyData.length) {
+            int end = findSequence(bodyData, boundaryBytes, start);
+            if (end == -1) {
+                break;
+            }
+
+            byte[] part = Arrays.copyOfRange(bodyData, start, end);
+            processMultipartPart(part, result);
+
+            start = end + boundaryBytes.length;
+        }
+
+        return result;
+    }
+
+    private static void processMultipartPart(byte[] part, Map<String, Object> result) throws IOException {
+        int headerEnd = findSequence(part, "\r\n\r\n".getBytes(), 0);
+        if (headerEnd == -1) {
+            return;
+        }
+
+        String headerStr = new String(part, 0, headerEnd, "UTF-8");
+        String[] headerLines = headerStr.split("\r\n");
+
+        String[] disposition = headerLines[0].split(";");
+        String name = null;
+        String filename = null;
+        for (String partDisposition : disposition) {
+            String[] keyValue = partDisposition.split("=", 2);
+            if (keyValue.length == 2) {
+                String key = keyValue[0].trim();
+                String value = keyValue[1].trim();
+                if ("name".equalsIgnoreCase(key)) {
+                    name = value.substring(1, value.length() - 1);
+                } else if ("filename".equalsIgnoreCase(key)) {
+                    filename = value.substring(1, value.length() - 1);
+                }
+            }
+        }
+
+        if (name == null) {
+            return;
+        }
+
+        byte[] value = Arrays.copyOfRange(part, headerEnd + 4, part.length);
+        if (filename != null) {
+            result.put(name, new File(filename, value));
+        } else {
+            result.put(name, new String(value, 0, value.length, "UTF-8"));
+        }
+    }
+
+    public Object getMultipartFile(String key) {
+        return multipartFile.get(key);
     }
 
     private static void parseQueryString(String queryString, Map<String, String> query) throws UnsupportedEncodingException {
