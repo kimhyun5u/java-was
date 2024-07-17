@@ -5,6 +5,8 @@ import codesquad.http.HttpRequest;
 import codesquad.http.HttpResponse;
 import codesquad.http.HttpStatus;
 import codesquad.model.User;
+import codesquad.server.db.TestSessionRepository;
+import codesquad.server.db.TestUserRepository;
 import codesquad.utils.JsonConverter;
 import org.junit.jupiter.api.*;
 
@@ -45,10 +47,11 @@ class UserHandlerTest {
     byte[] user;
     InputStream is;
     int sid = 0;
-
+    UserHandler userHandler;
     @BeforeEach
     void setUp() {
         user = JsonConverter.toJson(new User("javajigi", "password", "박재성", "javajigi@slipp.net")).getBytes();
+        userHandler = new UserHandler(new TestUserRepository(), new TestSessionRepository());
     }
 
     @Test
@@ -64,17 +67,15 @@ class UserHandlerTest {
         Context ctx = new Context(req, res);
 
         // when
-        UserHandler.login(ctx);
+        userHandler.login(ctx);
 
         // then
-        assertEquals(HttpStatus.UNAUTHORIZED.getCode(), res.getStatusCode());
+        assertEquals("/user/login_failed", res.getHeader("Location"));
     }
 
     @Test
     @Order(2)
     @DisplayName("회원가입 성공")
-    @Disabled
-        // TODO: TEST 수정하기
     void createUser() throws IOException {
         // given
         is = new ByteArrayInputStream(createRequest.getBytes());
@@ -83,7 +84,7 @@ class UserHandlerTest {
         Context ctx = new Context(req, res);
 
         // when
-        UserHandler.createUser(ctx);
+        userHandler.createUser(ctx);
 
         // then
         assertArrayEquals(user, res.getBody());
@@ -94,17 +95,16 @@ class UserHandlerTest {
     @Test
     @Order(3)
     @DisplayName("회원가입 후 로그인 성공")
-    @Disabled
-        // TODO: TEST 수정하기
     void testCreateAndLogin() throws IOException {
         // given
+        createUser();
         is = new ByteArrayInputStream(loginRequest.getBytes());
         var req = HttpRequest.from(is);
         var res = new HttpResponse();
         var ctx = new Context(req, res);
 
         // when
-        UserHandler.login(ctx);
+        userHandler.login(ctx);
 
         // then
         assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
@@ -117,17 +117,16 @@ class UserHandlerTest {
     @Test
     @Order(4)
     @DisplayName("로그아웃 성공")
-    @Disabled
-        // TODO: TEST 수정하기
     void testLogout() throws IOException {
         // given
+        testCreateAndLogin();
         is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n").getBytes());
         var req = HttpRequest.from(is);
         var res = new HttpResponse();
         var ctx = new Context(req, res);
 
         // when
-        UserHandler.logout(ctx);
+        userHandler.logout(ctx);
 
         // then
         assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
@@ -137,8 +136,6 @@ class UserHandlerTest {
     @Test
     @Order(5)
     @DisplayName("로그아웃 실패")
-    @Disabled
-        // TODO: TEST 수정하기
     void testLogoutFailure() throws IOException {
         // given
         is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n").getBytes());
@@ -147,7 +144,7 @@ class UserHandlerTest {
         var ctx = new Context(req, res);
 
         // when
-        UserHandler.logout(ctx);
+        userHandler.logout(ctx);
 
         // then
         assertEquals(HttpStatus.REDIRECT_FOUND.getCode(), res.getStatusCode());
