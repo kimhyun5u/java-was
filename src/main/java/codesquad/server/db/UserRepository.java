@@ -1,9 +1,9 @@
 package codesquad.server.db;
 
-import codesquad.db.Database;
 import codesquad.db.DatabaseResolver;
 import codesquad.model.User;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -11,13 +11,15 @@ import java.util.Optional;
 
 public class UserRepository {
     private static final String DBNAME = "users";
+    private final Connection conn;
 
-    private UserRepository() {
+    public UserRepository(Connection conn) {
+        this.conn = conn;
     }
 
-    public static void addUser(User user) {
+    public void addUser(User user) {
         String sql = "INSERT INTO " + DBNAME + " (userId, password, name, email) VALUES (?, ?, ?, ?)";
-        try (var pstmt = Database.getPreparedStatement(sql)) {
+        try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getUserId());
             pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getName());
@@ -28,9 +30,9 @@ public class UserRepository {
         }
     }
 
-    public static Optional<User> getUser(String userId) {
+    public Optional<User> getUser(String userId) {
         String sql = "SELECT * FROM " + DBNAME + " WHERE userId = ?";
-        try (var pstmt = Database.getPreparedStatement(sql)) {
+        try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, userId);
             pstmt.executeQuery();
 
@@ -47,9 +49,9 @@ public class UserRepository {
         }
     }
 
-    public static List<User> getUsers() {
+    public List<User> getUsers() {
         String sql = "SELECT * FROM " + DBNAME;
-        try (var pstmt = Database.getPreparedStatement(sql)) {
+        try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.executeQuery();
             List<Map<String, Object>> results = DatabaseResolver.resultSetToList(pstmt.getResultSet());
             return results.stream()

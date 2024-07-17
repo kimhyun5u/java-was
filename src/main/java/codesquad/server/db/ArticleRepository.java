@@ -1,9 +1,9 @@
 package codesquad.server.db;
 
-import codesquad.db.Database;
 import codesquad.db.DatabaseResolver;
 import codesquad.model.Article;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -11,13 +11,16 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ArticleRepository {
     private static final AtomicLong id = new AtomicLong(1);
     private static final String DBNAME = "articles";
-    private ArticleRepository() {
+    private Connection conn;
+
+    public ArticleRepository(Connection conn) {
+        this.conn = conn;
     }
 
-    public static void addArticle(Article article) {
+    public void addArticle(Article article) {
         String sql = "INSERT INTO " + DBNAME + " (id, userId, username, content) VALUES (?, ?, ?, ?)";
         article.setId(id.get());
-        try (PreparedStatement pstmt = Database.getPreparedStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, article.getId());
             pstmt.setString(2, article.getUserId());
             pstmt.setString(3, article.getUsername());
@@ -29,9 +32,9 @@ public class ArticleRepository {
         id.incrementAndGet();
     }
 
-    public static Article getArticle(long id) {
+    public Article getArticle(long id) {
         String sql = "SELECT * FROM " + DBNAME + " WHERE id = ?";
-        try (PreparedStatement pstmt = Database.getPreparedStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeQuery();
 
@@ -48,9 +51,9 @@ public class ArticleRepository {
         }
     }
 
-    public static void update(Article article) {
+    public void update(Article article) {
         String sql = "UPDATE " + DBNAME + " SET content = ? WHERE id = ?";
-        try (PreparedStatement pstmt = Database.getPreparedStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, article.getContent());
             pstmt.setLong(2, article.getId());
             pstmt.executeUpdate();

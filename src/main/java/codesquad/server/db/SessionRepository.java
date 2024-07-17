@@ -1,23 +1,24 @@
 package codesquad.server.db;
 
-
-import codesquad.db.Database;
 import codesquad.db.DatabaseResolver;
 
+import java.sql.Connection;
 import java.util.Random;
 
 public class SessionRepository {
     private static final String DBNAME = "sessions";
     private static final Random r = new Random();
     private static final int MAX_SESSION_SIZE = 1000;
+    private final Connection conn;
 
-    private SessionRepository() {
+    public SessionRepository(Connection connection) {
+        this.conn = connection;
     }
 
-    public static int addSession(String userId) {
+    public int addSession(String userId) {
         String sql = "INSERT INTO " + DBNAME + " (sid, userId) VALUES (?, ?)";
         int sid = r.nextInt(MAX_SESSION_SIZE);
-        try (var pstmt = Database.getPreparedStatement(sql)) {
+        try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sid);
             pstmt.setString(2, userId);
             pstmt.executeUpdate();
@@ -28,9 +29,9 @@ public class SessionRepository {
         return sid;
     }
 
-    public static String getSession(int sid) {
+    public String getSession(int sid) {
         String sql = "SELECT * FROM " + DBNAME + " WHERE sid = ?";
-        try (var pstmt = Database.getPreparedStatement(sql)) {
+        try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sid);
             pstmt.executeQuery();
 
@@ -47,9 +48,9 @@ public class SessionRepository {
         }
     }
 
-    public static void removeSession(int sid) {
+    public void removeSession(int sid) {
         String sql = "DELETE FROM " + DBNAME + " WHERE sid = ?";
-        try (var pstmt = Database.getPreparedStatement(sql)) {
+        try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sid);
             pstmt.executeUpdate();
         } catch (Exception e) {
@@ -57,7 +58,7 @@ public class SessionRepository {
         }
     }
 
-    public static boolean isValid(int sid) {
+    public boolean isValid(int sid) {
         return getSession(sid) != null;
     }
 }
