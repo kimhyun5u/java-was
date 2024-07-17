@@ -7,29 +7,34 @@ import codesquad.server.db.UserRepository;
 import java.util.Optional;
 
 public class AuthenticationResolver {
-    private AuthenticationResolver() {
+    private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
+
+    public AuthenticationResolver(UserRepository userRepository, SessionRepository sessionRepository) {
+        this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
     }
 
-    public static boolean isLogin(Context ctx) {
+    public boolean isLogin(Context ctx) {
         Optional<String> cookie = ctx.request().getCookie("sid");
         if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
             int sid = Integer.parseInt(cookie.get());
-            return SessionRepository.isValid(sid);
+            return sessionRepository.isValid(sid);
         }
 
         return false;
     }
 
-    public static Object getUserDetail(Context ctx) {
+    public Object getUserDetail(Context ctx) {
         String username = null;
         Optional<String> cookie = ctx.request().getCookie("sid");
         if (cookie.isPresent()) { // 쿠키가 있으면 세션 확인
             int sid = Integer.parseInt(cookie.get());
-            if (SessionRepository.isValid(sid)) { // 유효한 세션인지 확인
-                username = SessionRepository.getSession(sid);
+            if (sessionRepository.isValid(sid)) { // 유효한 세션인지 확인
+                username = sessionRepository.getSession(sid);
 
             }
         }
-        return UserRepository.getUser(username).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return userRepository.getUser(username).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 }

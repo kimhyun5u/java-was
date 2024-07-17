@@ -9,25 +9,35 @@ import codesquad.server.db.ArticleRepository;
 import codesquad.server.db.CommentRepository;
 import codesquad.server.db.SessionRepository;
 import codesquad.server.db.UserRepository;
+import codesquad.utils.AuthenticationResolver;
 import codesquad.utils.ResourceResolver;
 
 import java.util.List;
 import java.util.Optional;
 
-import static codesquad.utils.AuthenticationResolver.isLogin;
-
 public class ViewHandler {
-    private ViewHandler() {
+    private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
+    private final ArticleRepository articleRepository;
+    private final CommentRepository commentRepository;
+    private final AuthenticationResolver authenticationResolver;
+
+    public ViewHandler(UserRepository userRepository1, SessionRepository sessionRepository1, ArticleRepository articleRepository1, CommentRepository commentRepository1) {
+        this.userRepository = userRepository1;
+        this.sessionRepository = sessionRepository1;
+        this.articleRepository = articleRepository1;
+        this.commentRepository = commentRepository1;
+        this.authenticationResolver = new AuthenticationResolver(userRepository, sessionRepository);
     }
 
-    public static void getRegistrationPage(Context ctx) {
+    public void getRegistrationPage(Context ctx) {
         ctx.response()
                 .addHeader("Content-Type", "text/html")
                 .setBody("<html><h1>registration</h1></html>".getBytes());
 
     }
 
-    public static void getIndexPage(Context ctx) throws RuntimeException {
+    public void getIndexPage(Context ctx) throws RuntimeException {
         int now;
         Optional<String> page = ctx.request().getCookie("page");
         now = page.map(Integer::parseInt).orElse(1);
@@ -49,9 +59,9 @@ public class ViewHandler {
                 ;
                 return;
             }
-            if (SessionRepository.getSession(sid) != null) {
+            if (sessionRepository.getSession(sid) != null) {
                 String template = new String(ResourceResolver.readResourceFileAsBytes("/static/main/index.html"));
-                Optional<User> user = UserRepository.getUser(SessionRepository.getSession(sid));
+                Optional<User> user = userRepository.getUser(sessionRepository.getSession(sid));
                 if (user.isPresent()) {
 
                     String body = template.replace("{{username}}", user.get().getName());
@@ -74,10 +84,10 @@ public class ViewHandler {
         ;
     }
 
-    public static void getUserListPage(Context ctx) {
-        if (isLogin(ctx)) {
+    public void getUserListPage(Context ctx) {
+        if (authenticationResolver.isLogin(ctx)) {
             String template = new String(ResourceResolver.readResourceFileAsBytes("/static/user/list/index.html"));
-            List<User> users = UserRepository.getUsers();
+            List<User> users = userRepository.getUsers();
 
             StringBuilder userListHtml = new StringBuilder();
             for (User user : users) {
@@ -104,8 +114,8 @@ public class ViewHandler {
     }
 
 
-    public static void getWritePage(Context context) {
-        if (isLogin(context)) {
+    public void getWritePage(Context context) {
+        if (authenticationResolver.isLogin(context)) {
             context.response()
                     .setStatus(HttpStatus.OK)
                     .addHeader("Content-Type", "text/html")
@@ -118,7 +128,7 @@ public class ViewHandler {
                 .addHeader("Location", "/login");
     }
 
-    private static String getArticleHtml(int id) {
+    private String getArticleHtml(int id) {
         String articleTemplate = """
                         <div class="post">
                           <div class="post__account">
@@ -177,8 +187,8 @@ public class ViewHandler {
                         </nav>
                 """;
 
-        Article article = ArticleRepository.getArticle(id);
-        List<Comment> comments = CommentRepository.getComments(id);
+        Article article = articleRepository.getArticle(id);
+        List<Comment> comments = commentRepository.getComments(id);
         if (article == null) {
             return "";
         }

@@ -6,20 +6,25 @@ import codesquad.model.Article;
 import codesquad.model.User;
 import codesquad.server.db.ArticleRepository;
 import codesquad.server.db.CommentRepository;
+import codesquad.utils.AuthenticationResolver;
 
 import java.util.Optional;
 
-import static codesquad.utils.AuthenticationResolver.getUserDetail;
-import static codesquad.utils.AuthenticationResolver.isLogin;
-
 public class ArticleHandler {
-    private ArticleHandler() {
+    private final ArticleRepository articleRepository;
+    private final CommentRepository commentRepository;
+    private final AuthenticationResolver authenticationResolver;
+
+    public ArticleHandler(ArticleRepository articleRepository, CommentRepository commentRepository, AuthenticationResolver authenticationResolver) {
+        this.articleRepository = articleRepository;
+        this.commentRepository = commentRepository;
+        this.authenticationResolver = authenticationResolver;
     }
 
-    public static void write(Context ctx) {
-        if (isLogin(ctx)) {
-            User user = (User) getUserDetail(ctx);
-            ArticleRepository.addArticle(new Article(user.getUserId(), user.getName(), ctx.request().getQuery("content")));
+    public void write(Context ctx) {
+        if (authenticationResolver.isLogin(ctx)) {
+            User user = (User) authenticationResolver.getUserDetail(ctx);
+            articleRepository.addArticle(new Article(user.getUserId(), user.getName(), ctx.request().getQuery("content")));
             ctx.response()
                     .setStatus(HttpStatus.REDIRECT_FOUND)
                     .addHeader("Content-Type", "text/html")
@@ -32,13 +37,13 @@ public class ArticleHandler {
         }
     }
 
-    public static void addComment(Context ctx) {
-        if (isLogin(ctx)) {
+    public void addComment(Context ctx) {
+        if (authenticationResolver.isLogin(ctx)) {
 
-            User user = (User) getUserDetail(ctx);
+            User user = (User) authenticationResolver.getUserDetail(ctx);
             Optional<String> page = ctx.request().getCookie("page");
             if (page.isPresent()) {
-                CommentRepository.addComment(user, Long.parseLong(page.get()), ctx.request().getQuery("content"));
+                commentRepository.addComment(user, Long.parseLong(page.get()), ctx.request().getQuery("content"));
 
                 ctx.response()
                         .setStatus(HttpStatus.REDIRECT_FOUND)
