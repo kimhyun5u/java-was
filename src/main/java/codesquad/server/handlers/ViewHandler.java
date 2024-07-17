@@ -51,10 +51,19 @@ public class ViewHandler {
                 sid = Integer.parseInt(sidCookie.get());
             } catch (NumberFormatException e) {
                 String template = new String(ResourceResolver.readResourceFileAsBytes("/static/index.html"));
+                Article article = articleRepository.getArticle(now);
+                if (article == null) {
+                    ctx.response()
+                            .setStatus(HttpStatus.REDIRECT_FOUND)
+                            .addHeader("Location", "/")
+                            .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
+                    ;
+                    return;
+                }
 
                 ctx.response()
                         .addHeader("Content-Type", "text/html")
-                        .setBody(template.replace("{{post}}", getArticleHtml(now)).getBytes())
+                        .setBody(template.replace("{{post}}", getArticleHtml(article)).getBytes())
                         .setStatus(HttpStatus.OK)
                 ;
                 return;
@@ -65,7 +74,16 @@ public class ViewHandler {
                 if (user.isPresent()) {
 
                     String body = template.replace("{{username}}", user.get().getName());
-                    body = body.replace("{{post}}", getArticleHtml(now));
+                    Article article = articleRepository.getArticle(now);
+                    if (article == null) {
+                        ctx.response()
+                                .setStatus(HttpStatus.REDIRECT_FOUND)
+                                .addHeader("Location", "/")
+                                .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
+                        ;
+                        return;
+                    }
+                    body = body.replace("{{post}}", getArticleHtml(article));
 
                     ctx.response()
                             .addHeader("Content-Type", "text/html")
@@ -77,9 +95,18 @@ public class ViewHandler {
         }
         String template = new String(ResourceResolver.readResourceFileAsBytes("/static/index.html"));
 
+        Article article = articleRepository.getArticle(now);
+        if (article == null) {
+            ctx.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
+                    .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
+            ;
+            return;
+        }
         ctx.response()
                 .addHeader("Content-Type", "text/html")
-                .setBody(template.replace("{{post}}", getArticleHtml(now)).getBytes())
+                .setBody(template.replace("{{post}}", getArticleHtml(article)).getBytes())
                 .setStatus(HttpStatus.OK)
         ;
     }
@@ -128,7 +155,7 @@ public class ViewHandler {
                 .addHeader("Location", "/login");
     }
 
-    private String getArticleHtml(int id) {
+    private String getArticleHtml(Article article) {
         String articleTemplate = """
                         <div class="post">
                           <div class="post__account">
@@ -163,7 +190,7 @@ public class ViewHandler {
                         <nav class="nav">
                           <ul class="nav__menu">
                             <li class="nav__menu__item">
-                              <a class="nav__menu__item__btn" href="">
+                              <a class="nav__menu__item__btn" href="/article/prev">
                                 <img
                                   class="nav__menu__item__img"
                                   src="./img/ci_chevron-left.svg"
@@ -175,7 +202,7 @@ public class ViewHandler {
                               <a class="btn btn_ghost btn_size_m" href="/comment">댓글 작성</a>
                             </li>
                             <li class="nav__menu__item">
-                              <a class="nav__menu__item__btn" href="">
+                              <a class="nav__menu__item__btn" href="/article/next">
                                 다음 글
                                 <img
                                   class="nav__menu__item__img"
@@ -187,8 +214,7 @@ public class ViewHandler {
                         </nav>
                 """;
 
-        Article article = articleRepository.getArticle(id);
-        List<Comment> comments = commentRepository.getComments(id);
+        List<Comment> comments = commentRepository.getComments(article.getId());
         if (article == null) {
             return "";
         }
