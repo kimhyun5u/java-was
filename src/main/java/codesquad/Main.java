@@ -28,6 +28,8 @@ public class Main {
         server.post("/user/login", userHandler::login);
         server.get("/register.html", viewHandler::getRegistrationPage);
         server.get("/", viewHandler::getIndexPage);
+        server.get("/article/next", articleHandler::nextArticle);
+        server.get("/article/prev", articleHandler::prevArticle);
         server.post("/user/logout", userHandler::logout);
         server.get("/user/list", viewHandler::getUserListPage);
         server.get("/write", viewHandler::getWritePage);
