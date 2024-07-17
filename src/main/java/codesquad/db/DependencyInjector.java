@@ -14,26 +14,21 @@ import java.sql.SQLException;
 
 public class DependencyInjector {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DependencyInjector.class);
-    private static Connection connection;
-    private static UserRepository userRepository;
-    private static ArticleRepository articleRepository;
-    private static CommentRepository commentRepository;
-    private static SessionRepository sessionRepository;
     private static UserHandler userHandler;
     private static ArticleHandler articleHandler;
     private static ViewHandler viewHandler;
-    private static AuthenticationResolver authenticationResolver;
 
     private DependencyInjector() {
     }
 
     public static void initialize() {
         try {
-            connection = DatabaseManager.getConnection();
-            userRepository = new UserRepository(connection);
-            articleRepository = new ArticleRepository(connection);
-            commentRepository = new CommentRepository(connection);
-            sessionRepository = new SessionRepository(connection);
+            Connection connection = DatabaseManager.getConnection();
+            UserRepository userRepository = new UserRepository(connection);
+            ArticleRepository articleRepository = new ArticleRepository(connection);
+            CommentRepository commentRepository = new CommentRepository(connection);
+            SessionRepository sessionRepository = new SessionRepository(connection);
+            AuthenticationResolver authenticationResolver = new AuthenticationResolver(userRepository, sessionRepository);
             userHandler = new UserHandler(userRepository, sessionRepository);
             articleHandler = new ArticleHandler(articleRepository, commentRepository, authenticationResolver);
             viewHandler = new ViewHandler(userRepository, sessionRepository, articleRepository, commentRepository);
