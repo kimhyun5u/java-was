@@ -1,9 +1,6 @@
 package codesquad.db;
 
-import codesquad.server.db.ArticleRepository;
-import codesquad.server.db.CommentRepository;
-import codesquad.server.db.SessionRepository;
-import codesquad.server.db.UserRepository;
+import codesquad.server.db.*;
 import codesquad.server.handlers.ArticleHandler;
 import codesquad.server.handlers.UserHandler;
 import codesquad.server.handlers.ViewHandler;
@@ -24,10 +21,10 @@ public class DependencyInjector {
     public static void initialize() {
         try {
             Connection connection = DatabaseManager.getConnection();
-            UserRepository userRepository = new UserRepository(connection);
-            ArticleRepository articleRepository = new ArticleRepository(connection);
-            CommentRepository commentRepository = new CommentRepository(connection);
-            SessionRepository sessionRepository = new SessionRepository(connection);
+            UserRepository userRepository = new JdbcUserRepository(connection);
+            ArticleRepository articleRepository = new JdbcArticleRepository(connection);
+            CommentRepository commentRepository = new JdbcCommentRepository(connection);
+            SessionRepository sessionRepository = new JdbcSessionRepository(connection);
             AuthenticationResolver authenticationResolver = new AuthenticationResolver(userRepository, sessionRepository);
             userHandler = new UserHandler(userRepository, sessionRepository);
             articleHandler = new ArticleHandler(articleRepository, commentRepository, authenticationResolver);

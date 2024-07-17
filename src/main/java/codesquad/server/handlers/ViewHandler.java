@@ -22,11 +22,11 @@ public class ViewHandler {
     private final CommentRepository commentRepository;
     private final AuthenticationResolver authenticationResolver;
 
-    public ViewHandler(UserRepository userRepository1, SessionRepository sessionRepository1, ArticleRepository articleRepository1, CommentRepository commentRepository1) {
-        this.userRepository = userRepository1;
-        this.sessionRepository = sessionRepository1;
-        this.articleRepository = articleRepository1;
-        this.commentRepository = commentRepository1;
+    public ViewHandler(UserRepository userRepository, SessionRepository sessionRepository, ArticleRepository articleRepository, CommentRepository commentRepository) {
+        this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
+        this.articleRepository = articleRepository;
+        this.commentRepository = commentRepository;
         this.authenticationResolver = new AuthenticationResolver(userRepository, sessionRepository);
     }
 
