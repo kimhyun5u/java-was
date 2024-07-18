@@ -114,8 +114,8 @@ public class ViewHandler {
         Article article = articleRepository.getArticle(now);
         if (article == null) {
             ctx.response()
-                    .setStatus(HttpStatus.REDIRECT_FOUND)
-                    .addHeader("Location", "/")
+                    .setStatus(HttpStatus.OK)
+                    .setBody(template.replace("{{post}}", "").getBytes())
                     .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
             ;
             return;
