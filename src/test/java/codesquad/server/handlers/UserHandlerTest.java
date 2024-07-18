@@ -28,10 +28,7 @@ class UserHandlerTest {
             Content-Type: application/x-www-form-urlencoded
             Accept: */*
                         
-            userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net
-
-
-            """;
+            userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net""".replace(System.lineSeparator(), "\r\n");
     String loginRequest = """
             POST /user/login HTTP/1.1
             Host: localhost:8080
@@ -39,10 +36,8 @@ class UserHandlerTest {
             Content-Length: 33
             Content-Type: application/x-www-form-urlencoded
             Accept: */*
-
-            userId=javajigi&password=password
-
-            """;
+                        
+            userId=javajigi&password=password""".replace(System.lineSeparator(), "\r\n");
 
     byte[] user;
     InputStream is;
@@ -120,7 +115,7 @@ class UserHandlerTest {
     void testLogout() throws IOException {
         // given
         testCreateAndLogin();
-        is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n").getBytes());
+        is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n\r\n").getBytes());
         var req = HttpRequest.from(is);
         var res = new HttpResponse();
         var ctx = new Context(req, res);
@@ -138,7 +133,7 @@ class UserHandlerTest {
     @DisplayName("로그아웃 실패")
     void testLogoutFailure() throws IOException {
         // given
-        is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n").getBytes());
+        is = new ByteArrayInputStream(("GET /user/logout HTTP/1.1\r\nCookie: sid=" + sid + "\r\n\r\n").getBytes());
         var req = HttpRequest.from(is);
         var res = new HttpResponse();
         var ctx = new Context(req, res);
