@@ -19,8 +19,7 @@ public class CsvStatement implements Statement {
 
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
-        // CSV 파일에서 데이터를 읽어 ResultSet 으로 반환
-        return new CsvResultSet(sql, connection);
+        return null;
     }
 
     @Override
