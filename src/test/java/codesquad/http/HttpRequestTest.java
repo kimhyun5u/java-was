@@ -34,8 +34,7 @@ class HttpRequestTest {
                         User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
                         sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"
                         sec-ch-ua-mobile: ?0
-                        sec-ch-ua-platform: "macOS"
-                                        
+                        sec-ch-ua-platform: "macOS"\r\n\r\n
                         """, """
                         GET /create?userId=javajigi&password=password&name=%EB%B0%95%EC%9E%AC%EC%84%B1&email=javajigi%40slipp.net HTTP/1.1
                         Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
@@ -53,7 +52,7 @@ class HttpRequestTest {
                         User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
                         sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"
                         sec-ch-ua-mobile: ?0
-                        sec-ch-ua-platform: "macOS"
+                        sec-ch-ua-platform: "macOS"\r\n
                         """, """
                         GET /registration HTTP/1.1
                         Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
@@ -71,7 +70,7 @@ class HttpRequestTest {
                         User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
                         sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"
                         sec-ch-ua-mobile: ?0
-                        sec-ch-ua-platform: "macOS"
+                        sec-ch-ua-platform: "macOS"\r\n\r\n
                         """)
         );
     }
