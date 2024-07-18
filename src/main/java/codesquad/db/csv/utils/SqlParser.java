@@ -107,4 +107,23 @@ public class SqlParser {
         return null;
     }
 
+    public static Table parDeleteTable(String sql) {
+        Pattern pattern = Pattern.compile("DELETE\\s+FROM\\s+(\\w+)(?:\\s+WHERE\\s+(.+?))?\\s*;?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(sql);
+
+        if (matcher.find()) {
+            String tableName = matcher.group(1);
+            Table table = new Table(tableName);
+            String where = matcher.group(2);
+            if (where != null) {
+                String[] whereArray = where.split("=");
+                Column column = new Column(whereArray[0].trim(), null);
+                column.setValue(whereArray[1].trim());
+                table.columns.add(column);
+            }
+            return table;
+        }
+
+        return null;
+    }
 }
