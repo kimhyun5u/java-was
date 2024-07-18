@@ -172,13 +172,14 @@ public class ViewHandler {
     }
 
     private String getArticleHtml(Article article) {
+        String defaultPostImg = "class='post__img'";
         String articleTemplate = """
                         <div class="post">
                           <div class="post__account">
                             <img class="post__account__img" />
                             <p class="post__account__nickname">{{username}}</p>
                           </div>
-                          <img class="post__img" />
+                          <img {post_img} />
                           <div class="post__menu">
                             <ul class="post__menu__personal">
                               <li>
@@ -235,6 +236,7 @@ public class ViewHandler {
             return "";
         }
         return articleTemplate.replace("{{username}}", article.getUsername())
+                .replace("{post_img}", article.getImgSrc() == null ? defaultPostImg : "src=" + article.getImgSrc())
                 .replace("{{content}}", article.getContent())
                 .replace("{{comments}}", getCommentListHtml(comments))
                 ;
