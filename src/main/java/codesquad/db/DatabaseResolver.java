@@ -22,7 +22,7 @@ public class DatabaseResolver {
             int columnCount = metaData.getColumnCount();
             for (int i = 1; i <= columnCount; i++) {
                 String columnName = metaData.getColumnName(i);
-                Object value = rs.getObject(i);
+                Object value = rs.getObject(columnName);
                 row.put(columnName, value);
             }
 
