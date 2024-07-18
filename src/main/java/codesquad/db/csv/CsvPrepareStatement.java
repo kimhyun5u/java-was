@@ -204,7 +204,38 @@ public class CsvPrepareStatement implements PreparedStatement {
         } else if (sql.toUpperCase().startsWith("UPDATE")) {
 
         } else if (sql.toUpperCase().startsWith("DELETE")) {
+            try (var reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                line = reader.readLine();
+                String[] headers = line.split(",");
 
+                Column column = table.getColumns().get(0);// param
+
+                // id 컬럼의 인덱스 찾기
+                int idIndex = Arrays.asList(headers).indexOf(column.getName());
+
+                List<String> lines = new ArrayList<>();
+                while ((line = reader.readLine()) != null) {
+                    String value = line.split(",")[idIndex];
+                    if (!value.equals(column.getValue())) {
+                        lines.add(line);
+                    }
+                }
+
+                try (var writer = new BufferedWriter(new FileWriter(file))) {
+                    writer.write(Arrays.toString(headers) + System.lineSeparator());
+                    for (String l : lines) {
+                        writer.write(l + System.lineSeparator());
+                    }
+                } catch (IOException e) {
+                    throw new SQLException(e);
+                }
+
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }
