@@ -170,6 +170,20 @@ public class CsvPrepareStatement implements PreparedStatement {
                 line = reader.readLine();
                 String[] headers = line.split(",");
 
+                if (table.getColumns().isEmpty()) {
+                    List<Map<String, Object>> resultSet = new ArrayList<>();
+                    while ((line = reader.readLine()) != null) {
+                        Map<String, Object> result = new HashMap<>();
+                        String[] values = line.split(",");
+                        for (int i = 0; i < headers.length; i++) {
+                            result.put(headers[i], values[i]);
+                        }
+                        resultSet.add(result);
+                    }
+                    this.resultSet = resultSet;
+
+                    return true;
+                }
                 Column column = table.getColumns().get(0);// param
 
                 // id 컬럼의 인덱스 찾기
