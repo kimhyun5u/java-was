@@ -92,8 +92,6 @@ public class CsvStatement implements Statement {
 
     @Override
     public boolean execute(String sql) throws SQLException {
-        System.out.println("executeQuery: " + sql);
-
         // CREATE TABLE, INSERT INTO 등의 SQL을 실행
         if (sql.toUpperCase().startsWith("CREATE")) {
             Table table = SqlParser.parseCreateTable(sql);
