@@ -223,7 +223,7 @@ public class CsvPrepareStatement implements PreparedStatement {
                 }
 
                 try (var writer = new BufferedWriter(new FileWriter(file))) {
-                    writer.write(Arrays.toString(headers) + System.lineSeparator());
+                    writer.write(Arrays.stream(headers).collect(Collectors.joining(",")) + System.lineSeparator());
                     for (String l : lines) {
                         writer.write(l + System.lineSeparator());
                     }
