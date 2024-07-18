@@ -1,5 +1,6 @@
 package codesquad.db.csv;
 
+import java.io.File;
 import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -23,7 +24,29 @@ public class CsvDriver implements Driver {
 
     @Override
     public boolean acceptsURL(String url) throws SQLException {
-        return url.startsWith("jdbc:csv:");
+        if (url.startsWith("jdbc:csv:")) {
+            String path = url.split("jdbc:csv:")[1];
+            if (path.startsWith("~/")) {
+                path = System.getProperty("user.home") + "/" + path.split("~/")[1];
+            }
+
+            // 마지막 ; 확인 후 제거
+            if (path.endsWith(";")) {
+                path = path.substring(0, path.length() - 1);
+            }
+
+            // 디렉토리가 존재하는지 확인
+            File dir = new File(path);
+            if (!dir.exists()) {
+                boolean success = dir.mkdirs();
+                if (!success) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 
     @Override
