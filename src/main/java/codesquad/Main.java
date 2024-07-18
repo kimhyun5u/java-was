@@ -48,7 +48,6 @@ public class Main {
                         .setBody("Logout failed".getBytes()));
         server.staticFiles("/", "/static");
 
-
         server.start();
 
     }
