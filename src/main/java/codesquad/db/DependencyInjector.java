@@ -20,7 +20,7 @@ public class DependencyInjector {
 
     public static void initialize() {
         try {
-            Connection connection = DatabaseManager.getConnection();
+            Connection connection = CsvDatabaseManager.getConnection();
 
             // 초기 디비 설정
             connection.createStatement().execute("CREATE TABLE IF NOT EXISTS users (userId VARCHAR(255) PRIMARY KEY, password VARCHAR(255), name VARCHAR(255), email VARCHAR(255))");
