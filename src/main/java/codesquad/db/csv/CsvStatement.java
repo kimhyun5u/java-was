@@ -1,5 +1,11 @@
 package codesquad.db.csv;
 
+
+import codesquad.db.csv.utils.SqlParser;
+import codesquad.db.csv.utils.Table;
+
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 
 public class CsvStatement implements Statement {
@@ -12,7 +18,6 @@ public class CsvStatement implements Statement {
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
         // CSV 파일에서 데이터를 읽어 ResultSet 으로 반환
-
         return new CsvResultSet(sql, connection);
     }
 
@@ -88,6 +93,9 @@ public class CsvStatement implements Statement {
     public boolean execute(String sql) throws SQLException {
         System.out.println("executeQuery: " + sql);
         //
+
+        // CREATE TABLE, INSERT INTO 등의 SQL을 실행
+        } else if (sql.toUpperCase().startsWith("INSERT")) {
         return false;
     }
 
