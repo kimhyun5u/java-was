@@ -31,7 +31,6 @@ public class ResourceResolver {
     private static void initializeExternalResourceDir() throws IOException {
         if (!Files.exists(EXTERNAL_RESOURCE_DIR)) {
             Files.createDirectories(EXTERNAL_RESOURCE_DIR);
-            System.out.println("Created external resource directory: " + EXTERNAL_RESOURCE_DIR);
         }
     }
 
