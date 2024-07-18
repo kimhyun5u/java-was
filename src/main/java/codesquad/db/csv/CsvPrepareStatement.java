@@ -7,14 +7,17 @@ import codesquad.db.csv.utils.Table;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.sql.Date;
 import java.sql.*;
-import java.util.Calendar;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 public class CsvPrepareStatement implements PreparedStatement {
     private Connection conn;
     private String sql;
     private Table table;
+    private List<Map<String, Object>> resultSet;
 
     public CsvPrepareStatement(Connection conn, String sql) {
         this.conn = conn;
@@ -25,7 +28,7 @@ public class CsvPrepareStatement implements PreparedStatement {
         } else if (sql.toUpperCase().startsWith("SELECT")) {
             table = SqlParser.parseSelectTable(sql);
         } else if (sql.toUpperCase().startsWith("DELETE")) {
-            table = SqlParser.parseSelectTable(sql);
+            table = SqlParser.parDeleteTable(sql);
         } else {
             throw new RuntimeException("Not Support SQL");
         }
@@ -143,24 +146,60 @@ public class CsvPrepareStatement implements PreparedStatement {
 
     @Override
     public boolean execute() throws SQLException {
+        String filePath = System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + ".csv";
+
+        File file = new File(filePath);
+
+        // 파일 존재 검증
+        if (!file.exists()) {
+            throw new SQLException("Table not found");
+        }
+
         if (sql.toUpperCase().startsWith("INSERT")) {
-            String filePath = System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + ".csv";
-            File file = new File(filePath);
-
-            // 파일 존재 검증
-            if (!file.exists()) {
-                throw new SQLException("Table not found");
-            }
-
             // 파일 쓰기
             try (var writer = new BufferedWriter(new FileWriter(file, true))) {
-                writer.write(table.getColumns().stream().map(Column::getValue).collect(Collectors.joining(", ")) + System.lineSeparator());
+                writer.write(table.getColumns().stream().map(Column::getValue).collect(Collectors.joining(",")) + System.lineSeparator());
             } catch (IOException e) {
                 throw new SQLException(e);
             }
 
 
         } else if (sql.toUpperCase().startsWith("SELECT")) {
+            try (var reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                line = reader.readLine();
+                String[] headers = line.split(",");
+
+                Column column = table.getColumns().get(0);// param
+
+                // id 컬럼의 인덱스 찾기
+                int idIndex = Arrays.asList(headers).indexOf(column.getName());
+
+                while ((line = reader.readLine()) != null) {
+                    String value = line.split(",")[idIndex];
+                    if (value.equals(column.getValue())) {
+                        break;
+                    }
+                }
+
+                List<Map<String, Object>> resultSet = new ArrayList<>();
+                Map<String, Object> result = new HashMap<>();
+                if (line != null) {
+
+                    String[] values = line.split(",");
+                    for (int i = 0; i < headers.length; i++) {
+                        result.put(headers[i], values[i]);
+                    }
+                    resultSet.add(result);
+                }
+                this.resultSet = resultSet;
+
+                return true;
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
         } else if (sql.toUpperCase().startsWith("UPDATE")) {
 
@@ -407,7 +446,7 @@ public class CsvPrepareStatement implements PreparedStatement {
 
     @Override
     public ResultSet getResultSet() throws SQLException {
-        return null;
+        return new CsvResultSet(resultSet);
     }
 
     @Override
