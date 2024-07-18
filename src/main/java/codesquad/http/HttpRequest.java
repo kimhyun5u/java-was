@@ -81,7 +81,7 @@ public class HttpRequest {
         if (target.contains("?")) {
             String[] urlParts = target.split("\\?", 2);
             target = urlParts[0];
-            parseQueryString(urlParts[1], query);
+            parseQueryString(urlParts[1].getBytes(), query);
         }
 
         // 헤더 파싱
@@ -113,7 +113,7 @@ public class HttpRequest {
         if ("POST".equalsIgnoreCase(method)) {
             String contentType = headers.getOrDefault("Content-Type", "");
             if (contentType.contains("application/x-www-form-urlencoded")) {
-                parseQueryString(body, query);
+                parseQueryString(bodyData, query);
             }
             // 다른 Content-Type (예: application/json)에 대한 처리는 여기에 추가할 수 있습니다.
             else if (contentType.contains("multipart/form-data")) {
@@ -201,7 +201,8 @@ public class HttpRequest {
         }
     }
 
-    private static void parseQueryString(String queryString, Map<String, String> query) throws UnsupportedEncodingException {
+    private static void parseQueryString(byte[] bodyData, Map<String, String> query) throws UnsupportedEncodingException {
+        String queryString = new String(bodyData);
         for (String param : queryString.split("&")) {
             String[] keyValue = param.split("=", 2);
             if (keyValue.length == 2) {
