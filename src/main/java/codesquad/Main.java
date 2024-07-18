@@ -1,8 +1,8 @@
 package codesquad;
 
-import codesquad.db.DependencyInjector;
 import codesquad.http.HttpStatus;
 import codesquad.http.Server;
+import codesquad.server.DependencyInjector;
 import codesquad.server.handlers.ArticleHandler;
 import codesquad.server.handlers.UserHandler;
 import codesquad.server.handlers.ViewHandler;

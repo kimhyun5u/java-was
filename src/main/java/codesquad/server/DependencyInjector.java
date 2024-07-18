@@ -1,5 +1,6 @@
-package codesquad.db;
+package codesquad.server;
 
+import codesquad.db.CsvDatabaseManager;
 import codesquad.server.db.*;
 import codesquad.server.handlers.ArticleHandler;
 import codesquad.server.handlers.UserHandler;
