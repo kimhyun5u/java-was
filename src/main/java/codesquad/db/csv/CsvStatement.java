@@ -1,9 +1,11 @@
 package codesquad.db.csv;
 
 
+import codesquad.db.csv.utils.Column;
 import codesquad.db.csv.utils.SqlParser;
 import codesquad.db.csv.utils.Table;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
@@ -97,11 +99,19 @@ public class CsvStatement implements Statement {
         if (sql.toUpperCase().startsWith("CREATE")) {
             Table table = SqlParser.parseCreateTable(sql);
             try {
-                new File(System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + ".csv").createNewFile();
+                String filePath = System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + ".csv";
+                new File(filePath).createNewFile();
+                try (BufferedWriter bw = new BufferedWriter(new java.io.FileWriter(filePath))) {
+                    bw.write(String.join(",", table.getColumns().stream().map(Column::getName).toArray(String[]::new)));
+                    bw.newLine();
+
+                } catch (IOException e) {
+                    throw new RuntimeException("Fail to create table", e);
+                }
+                return true;
             } catch (IOException e) {
                 throw new RuntimeException("Fail to create table", e);
             }
-            return true;
         } else if (sql.toUpperCase().startsWith("INSERT")) {
             // 데이터 삽입 로직
             Table table = SqlParser.parseInsertTable(sql);
