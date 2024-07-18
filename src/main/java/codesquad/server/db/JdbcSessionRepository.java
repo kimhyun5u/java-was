@@ -16,12 +16,12 @@ public class JdbcSessionRepository implements SessionRepository {
     }
 
     public int addSession(String userId) {
-        String sql = "INSERT INTO " + DBNAME + " (sid, userId) VALUES (?, ?)";
+        String sql = "INSERT INTO " + DBNAME + " (sid, userId) VALUES (?, ?);";
         int sid = r.nextInt(MAX_SESSION_SIZE);
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sid);
             pstmt.setString(2, userId);
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -30,10 +30,10 @@ public class JdbcSessionRepository implements SessionRepository {
     }
 
     public String getSession(int sid) {
-        String sql = "SELECT * FROM " + DBNAME + " WHERE sid = ?";
+        String sql = "SELECT * FROM " + DBNAME + " WHERE sid = ?;";
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sid);
-            pstmt.executeQuery();
+            pstmt.execute();
 
             var resultList = DatabaseResolver.resultSetToList(pstmt.getResultSet());
             if (resultList.isEmpty()) {
@@ -42,17 +42,17 @@ public class JdbcSessionRepository implements SessionRepository {
 
             var result = resultList.get(0);
 
-            return result.get("userId".toUpperCase()).toString();
+            return result.get("userId").toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public void removeSession(int sid) {
-        String sql = "DELETE FROM " + DBNAME + " WHERE sid = ?";
+        String sql = "DELETE FROM " + DBNAME + " WHERE sid = ?;";
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, sid);
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

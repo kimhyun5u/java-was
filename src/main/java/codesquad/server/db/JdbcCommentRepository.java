@@ -48,7 +48,7 @@ public class JdbcCommentRepository implements CommentRepository {
 
             return DatabaseResolver.resultSetToList(pstmt.getResultSet()).stream()
                     .filter(Objects::nonNull)
-                    .map(result -> new Comment(result.get("userId".toUpperCase()).toString(), Long.parseLong(result.get("pageId".toUpperCase()).toString()), result.get("username".toUpperCase()).toString(), result.get("content".toUpperCase()).toString()))
+                    .map(result -> new Comment(result.get("userId").toString(), Long.parseLong(result.get("pageId").toString()), result.get("username").toString(), result.get("content").toString()))
                     .toList();
         } catch (Exception e) {
             throw new RuntimeException(e);

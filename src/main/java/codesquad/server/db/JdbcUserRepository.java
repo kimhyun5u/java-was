@@ -43,7 +43,7 @@ public class JdbcUserRepository implements UserRepository {
 
             var result = resultList.get(0);
 
-            return Optional.of(new User(result.get("userId".toUpperCase()).toString(), result.get("password".toUpperCase()).toString(), result.get("name".toUpperCase()).toString(), result.get("email".toUpperCase()).toString()));
+            return Optional.of(new User(result.get("userId").toString(), result.get("password").toString(), result.get("name").toString(), result.get("email").toString()));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -52,10 +52,10 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> getUsers() {
         String sql = "SELECT * FROM " + DBNAME;
         try (var pstmt = conn.prepareStatement(sql)) {
-            pstmt.executeQuery();
+            pstmt.execute();
             List<Map<String, Object>> results = DatabaseResolver.resultSetToList(pstmt.getResultSet());
             return results.stream()
-                    .map(result -> new User(result.get("userId".toUpperCase()).toString(), result.get("password".toUpperCase()).toString(), result.get("name".toUpperCase()).toString(), result.get("email".toUpperCase()).toString()))
+                    .map(result -> new User(result.get("userId").toString(), result.get("password").toString(), result.get("name").toString(), result.get("email").toString()))
                     .toList();
         } catch (SQLException e) {
             throw new RuntimeException(e);
