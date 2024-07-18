@@ -22,7 +22,7 @@ public class CsvConnection implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
-        return null;
+        return new CsvPrepareStatement(this, sql);
     }
 
     @Override
