@@ -36,8 +36,9 @@ public class ArticleHandler {
             }
             if (multipartFile != null && !Arrays.equals(multipartFile.getContent(), "".getBytes())) {
                 File uploadFile = ResourceResolver.uploadFile(multipartFile);
-                article.setOriginalName(uploadFile.getName());
-                article.setUploadPath(uploadFile.getUploadPath());
+                article.setOriginalImgName(uploadFile.getName());
+                article.setImgSrc(uploadFile.getImageSrc());
+                article.setUploadImgPath(uploadFile.getUploadPath());
             }
 
 
