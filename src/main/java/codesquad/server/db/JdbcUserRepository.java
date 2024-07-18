@@ -18,23 +18,23 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     public void addUser(User user) {
-        String sql = "INSERT INTO " + DBNAME + " (userId, password, name, email) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO " + DBNAME + " (userId, password, name, email) VALUES (?, ?, ?, ?);";
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getUserId());
             pstmt.setString(2, user.getPassword());
             pstmt.setString(3, user.getName());
             pstmt.setString(4, user.getEmail());
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public Optional<User> getUser(String userId) {
-        String sql = "SELECT * FROM " + DBNAME + " WHERE userId = ?";
+        String sql = "SELECT * FROM " + DBNAME + " WHERE userId = ?;";
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, userId);
-            pstmt.executeQuery();
+            pstmt.execute();
 
             var resultList = DatabaseResolver.resultSetToList(pstmt.getResultSet());
             if (resultList.isEmpty()) {

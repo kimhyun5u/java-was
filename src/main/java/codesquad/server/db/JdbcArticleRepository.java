@@ -25,7 +25,7 @@ public class JdbcArticleRepository implements ArticleRepository {
             pstmt.setString(5, article.getOriginalImgName());
             pstmt.setString(6, article.getImgSrc());
 
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -35,7 +35,7 @@ public class JdbcArticleRepository implements ArticleRepository {
         String sql = "SELECT * FROM " + DBNAME + " WHERE id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
-            pstmt.executeQuery();
+            pstmt.execute();
 
             var resultList = DatabaseResolver.resultSetToList(pstmt.getResultSet());
             if (resultList.isEmpty()) {
@@ -62,7 +62,7 @@ public class JdbcArticleRepository implements ArticleRepository {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, article.getContent());
             pstmt.setLong(2, article.getId());
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

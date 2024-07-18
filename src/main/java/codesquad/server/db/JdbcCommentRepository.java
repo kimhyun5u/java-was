@@ -23,7 +23,7 @@ public class JdbcCommentRepository implements CommentRepository {
             pstmt.setLong(2, pageId);
             pstmt.setString(3, user.getName());
             pstmt.setString(4, content);
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -33,7 +33,7 @@ public class JdbcCommentRepository implements CommentRepository {
         String sql = "DELETE FROM " + DBNAME + " WHERE id = ?";
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
-            pstmt.executeUpdate();
+            pstmt.execute();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -43,7 +43,7 @@ public class JdbcCommentRepository implements CommentRepository {
         String sql = "SELECT * FROM " + DBNAME + " WHERE pageId = ?";
         try (var pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
-            pstmt.executeQuery();
+            pstmt.execute();
 
 
             return DatabaseResolver.resultSetToList(pstmt.getResultSet()).stream()
