@@ -40,10 +40,10 @@ public class HttpRequest {
         while ((bytesRead = bis.read(buffer)) != -1) {
             baos.write(buffer, 0, bytesRead);
 
-            if ((contentLengthPos = findSequence(baos.toByteArray(), "Content-Length: ".getBytes(), 0)) != -1) {
+            if ((contentLengthPos = findSequence(baos.toByteArray(), "Content-Length:".getBytes(), 0)) != -1) {
                 int contentLengthLength = findSequence(baos.toByteArray(), "\r\n".getBytes(), contentLengthPos);
                 if (contentLengthLength != -1) {
-                    contentLength = Integer.parseInt(new String(Arrays.copyOfRange(baos.toByteArray(), contentLengthPos + "Content-Length: ".length(), contentLengthLength)).trim());
+                    contentLength = Integer.parseInt(new String(Arrays.copyOfRange(baos.toByteArray(), contentLengthPos + "Content-Length:".length(), contentLengthLength)).trim());
                 }
             }
             // baos 에 \r\n\r\n이 없으면 계속 읽기
