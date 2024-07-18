@@ -1,9 +1,6 @@
 package codesquad.http;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class HttpRequest {
-    private static final int MAX_REQUEST_SIZE = 1024 * 10; // 10MB
+    private static final int MAX_REQUEST_SIZE = 1024 * 10; // 1MB
     private final String method;
     private final String version;
     private final String path;
@@ -32,49 +29,40 @@ public class HttpRequest {
         this.multipartFile = multipartFile;
     }
 
-    public String getMethod() {
-        return method;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public Optional<String> getHeader(String key) {
-        return Optional.ofNullable(headers.get(key));
-    }
-
-    public String getRequestLine() {
-        return method + " " + path + " " + version;
-    }
-
-    public String getQuery(String key) {
-        return query.get(key);
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
     public static HttpRequest from(InputStream is) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final int Buffer_SIZE = 8192;
-        byte[] buffer = new byte[Buffer_SIZE];
+        BufferedInputStream bis = new BufferedInputStream(is);
+        byte[] buffer = new byte[8196];
         int bytesRead;
-        while ((bytesRead = is.read(buffer)) != -1) {
+        int contentLengthPos = -1;
+        int contentLength = -1;
+        int headerEnd = -1;
+        while ((bytesRead = bis.read(buffer)) != -1) {
             baos.write(buffer, 0, bytesRead);
-            if (baos.size() < Buffer_SIZE) {
-                break;
+
+            if ((contentLengthPos = findSequence(baos.toByteArray(), "Content-Length: ".getBytes(), 0)) != -1) {
+                int contentLengthLength = findSequence(baos.toByteArray(), "\r\n".getBytes(), contentLengthPos);
+                if (contentLengthLength != -1) {
+                    contentLength = Integer.parseInt(new String(Arrays.copyOfRange(baos.toByteArray(), contentLengthPos + "Content-Length: ".length(), contentLengthLength)).trim());
+                }
+            }
+            // baos 에 \r\n\r\n이 없으면 계속 읽기
+            if ((headerEnd = findSequence(baos.toByteArray(), "\r\n\r\n".getBytes(), 0)) != -1) {
+                if (contentLength != -1) {
+                    int bodyStart = headerEnd + 4;
+                    int bodyEnd = bodyStart + contentLength;
+                    if (bodyEnd <= baos.size()) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
             }
         }
         byte[] rawData = baos.toByteArray();
 
         // 헤더와 바디 구분점 계산
-        int headerEnd = findSequence(rawData, "\r\n\r\n".getBytes(), 0);
+        headerEnd = findSequence(rawData, "\r\n\r\n".getBytes(), 0);
         if (headerEnd == -1) {
             throw new IOException("Invalid HTTP request");
         }
@@ -123,7 +111,7 @@ public class HttpRequest {
 
         // POST 요청 처리
         if ("POST".equalsIgnoreCase(method)) {
-            String contentType = headers.getOrDefault("Content-Type", "").toLowerCase();
+            String contentType = headers.getOrDefault("Content-Type", "");
             if (contentType.contains("application/x-www-form-urlencoded")) {
                 parseQueryString(body, query);
             }
@@ -185,7 +173,7 @@ public class HttpRequest {
         String headerStr = new String(part, 0, headerEnd, "UTF-8");
         String[] headerLines = headerStr.split("\r\n");
 
-        String[] disposition = headerLines[0].split(";");
+        String[] disposition = headerLines[1].split(";");
         String name = null;
         String filename = null;
         for (String partDisposition : disposition) {
@@ -213,10 +201,6 @@ public class HttpRequest {
         }
     }
 
-    public Object getMultipartFile(String key) {
-        return multipartFile.get(key);
-    }
-
     private static void parseQueryString(String queryString, Map<String, String> query) throws UnsupportedEncodingException {
         for (String param : queryString.split("&")) {
             String[] keyValue = param.split("=", 2);
@@ -226,6 +210,38 @@ public class HttpRequest {
                 query.put(keyValue[0], "");
             }
         }
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Optional<String> getHeader(String key) {
+        return Optional.ofNullable(headers.get(key));
+    }
+
+    public String getRequestLine() {
+        return method + " " + path + " " + version;
+    }
+
+    public String getQuery(String key) {
+        return query.get(key);
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public Object getMultipartFile(String key) {
+        return multipartFile.get(key);
     }
 
     public Optional<String> getCookie(String key) {
