@@ -3,7 +3,7 @@ package codesquad.http;
 public class File {
     private final String name;
     private final byte[] content;
-    private String uploadPath = "/upload/";
+    private String uploadPath = "/static/upload/";
     private String imageSrc = "/upload/";
     private String uploadName = "";
 
