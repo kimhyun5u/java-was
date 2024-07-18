@@ -92,10 +92,21 @@ public class CsvStatement implements Statement {
     @Override
     public boolean execute(String sql) throws SQLException {
         System.out.println("executeQuery: " + sql);
-        //
 
         // CREATE TABLE, INSERT INTO 등의 SQL을 실행
+        if (sql.toUpperCase().startsWith("CREATE")) {
+            Table table = SqlParser.parseCreateTable(sql);
+            try {
+                new File(System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + ".csv").createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException("Fail to create table", e);
+            }
+            return true;
         } else if (sql.toUpperCase().startsWith("INSERT")) {
+            // 데이터 삽입 로직
+            Table table = SqlParser.parseInsertTable(sql);
+            return true;
+        }
         return false;
     }
 
