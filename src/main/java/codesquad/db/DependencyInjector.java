@@ -23,10 +23,10 @@ public class DependencyInjector {
             Connection connection = CsvDatabaseManager.getConnection();
 
             // 초기 디비 설정
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS users (userId VARCHAR(255) PRIMARY KEY, password VARCHAR(255), name VARCHAR(255), email VARCHAR(255))");
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS sessions (sid INT PRIMARY KEY, userId VARCHAR(255))");
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS articles (id INT PRIMARY KEY AUTO_INCREMENT, userId VARCHAR(255),username VARCHAR(255), content TEXT, uploadImgPath VARCHAR(255), originalImgName VARCHAR(255), imgSrc VARCHAR(255))");
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS comments (id INT PRIMARY KEY AUTO_INCREMENT , userId VARCHAR(255), pageId INT, username VARCHAR(255), content TEXT)");
+            connection.createStatement().execute("CREATE TABLE users (userId VARCHAR(255) PRIMARY KEY, password VARCHAR(255), name VARCHAR(255), email VARCHAR(255));");
+            connection.createStatement().execute("CREATE TABLE sessions (sid INT PRIMARY KEY, userId VARCHAR(255));");
+            connection.createStatement().execute("CREATE TABLE articles (id INT PRIMARY KEY AUTO_INCREMENT, userId VARCHAR(255),username VARCHAR(255), content TEXT, uploadImgPath VARCHAR(255), originalImgName VARCHAR(255), imgSrc VARCHAR(255));");
+            connection.createStatement().execute("CREATE TABLE comments (id INT PRIMARY KEY AUTO_INCREMENT , userId VARCHAR(255), pageId INT, username VARCHAR(255), content TEXT);");
 
             UserRepository userRepository = new JdbcUserRepository(connection);
             ArticleRepository articleRepository = new JdbcArticleRepository(connection);
