@@ -1,13 +1,10 @@
 package codesquad.db.csv;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -16,36 +13,16 @@ public class CsvResultSet implements ResultSet {
     private List<String[]> data;
     private int currentRow = -1;
     private String[] columnNames;
+    private List<Map<String, Object>> resultSet;
 
-    public CsvResultSet(String sql, CsvConnection connection) throws SQLException {
-        // SQL 파싱 (이 예제에서는 단순화를 위해 파일 경로만 사용)
-        String filePath = sql.substring(sql.indexOf("FROM") + 5).trim();
-        loadCsvData(filePath);
-    }
-
-    private void loadCsvData(String filePath) throws SQLException {
-        data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            boolean isFirst = true;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                if (isFirst) {
-                    columnNames = values;
-                    isFirst = false;
-                } else {
-                    data.add(values);
-                }
-            }
-        } catch (Exception e) {
-            throw new SQLException("Error reading CSV file", e);
-        }
+    public CsvResultSet(List<Map<String, Object>> rs) {
+        this.resultSet = rs;
     }
 
     @Override
     public boolean next() throws SQLException {
         currentRow++;
-        return currentRow < data.size();
+        return currentRow < resultSet.size();
     }
 
     @Override
@@ -130,12 +107,7 @@ public class CsvResultSet implements ResultSet {
 
     @Override
     public String getString(String columnLabel) throws SQLException {
-        for (int i = 0; i < columnNames.length; i++) {
-            if (columnNames[i].equals(columnLabel)) {
-                return getString(i + 1);
-            }
-        }
-        throw new SQLException("Column not found: " + columnLabel);
+        return (String) resultSet.get(currentRow).get(columnLabel);
     }
 
     @Override
@@ -230,7 +202,7 @@ public class CsvResultSet implements ResultSet {
 
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {
-        return null;
+        return new CsvResultSetMetaData(resultSet);
     }
 
     @Override
@@ -240,7 +212,7 @@ public class CsvResultSet implements ResultSet {
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
-        return null;
+        return resultSet.get(currentRow).get(columnLabel);
     }
 
     @Override
