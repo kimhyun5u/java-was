@@ -52,12 +52,20 @@ public class ViewHandler {
             } catch (NumberFormatException e) {
                 String template = new String(ResourceResolver.readResourceFileAsBytes("/static/index.html"));
                 Article article = articleRepository.getArticle(now);
-                if (article == null) {
+                if (now != 1 && article == null) {
                     ctx.response()
                             .setStatus(HttpStatus.REDIRECT_FOUND)
                             .addHeader("Location", "/")
                             .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
                     ;
+                    return;
+                }
+                if (now == 1 && article == null) {
+                    ctx.response()
+                            .setStatus(HttpStatus.OK)
+                            .addHeader("Content-Type", "text/html")
+                            .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
+                            .setBody(template.replace("{{post}}", "").getBytes());
                     return;
                 }
 
@@ -75,12 +83,20 @@ public class ViewHandler {
 
                     String body = template.replace("{{username}}", user.get().getName());
                     Article article = articleRepository.getArticle(now);
-                    if (article == null) {
+                    if (now != 1 && article == null) {
                         ctx.response()
                                 .setStatus(HttpStatus.REDIRECT_FOUND)
                                 .addHeader("Location", "/")
                                 .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
                         ;
+                        return;
+                    }
+                    if (now == 1 && article == null) {
+                        ctx.response()
+                                .setStatus(HttpStatus.OK)
+                                .addHeader("Content-Type", "text/html")
+                                .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
+                                .setBody(body.replace("{{post}}", "").getBytes());
                         return;
                     }
                     body = body.replace("{{post}}", getArticleHtml(article));
