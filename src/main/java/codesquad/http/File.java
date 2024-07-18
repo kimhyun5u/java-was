@@ -4,6 +4,7 @@ public class File {
     private final String name;
     private final byte[] content;
     private String uploadPath = "/upload/";
+    private String imageSrc = "/upload/";
     private String uploadName = "";
 
     public File(String name, byte[] content) {
@@ -33,5 +34,13 @@ public class File {
 
     public void setUploadName(String uploadName) {
         this.uploadName = uploadName;
+    }
+
+    public String getImageSrc() {
+        return imageSrc;
+    }
+
+    public void setImageSrc(String imageSrc) {
+        this.imageSrc = imageSrc;
     }
 }
