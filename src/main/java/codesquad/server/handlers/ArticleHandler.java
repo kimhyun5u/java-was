@@ -1,13 +1,16 @@
 package codesquad.server.handlers;
 
 import codesquad.http.Context;
+import codesquad.http.File;
 import codesquad.http.HttpStatus;
 import codesquad.model.Article;
 import codesquad.model.User;
 import codesquad.server.db.ArticleRepository;
 import codesquad.server.db.CommentRepository;
 import codesquad.utils.AuthenticationResolver;
+import codesquad.utils.ResourceResolver;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 public class ArticleHandler {
@@ -24,7 +27,21 @@ public class ArticleHandler {
     public void write(Context ctx) {
         if (authenticationResolver.isLogin(ctx)) {
             User user = (User) authenticationResolver.getUserDetail(ctx);
-            articleRepository.addArticle(new Article(user.getUserId(), user.getName(), ctx.request().getQuery("content")));
+            File multipartFile = null;
+
+            Article article = new Article(user.getUserId(), user.getName(), (String) ctx.request().getMultipartFile("content"));
+
+            if (ctx.request().getMultipartFile("file") != null) { // 파일 업로드가 있을 경우
+                multipartFile = (File) ctx.request().getMultipartFile("file");
+            }
+            if (multipartFile != null && !Arrays.equals(multipartFile.getContent(), "".getBytes())) {
+                File uploadFile = ResourceResolver.uploadFile(multipartFile);
+                article.setOriginalName(uploadFile.getName());
+                article.setUploadPath(uploadFile.getUploadPath());
+            }
+
+
+            articleRepository.addArticle(article);
             ctx.response()
                     .setStatus(HttpStatus.REDIRECT_FOUND)
                     .addHeader("Content-Type", "text/html")
