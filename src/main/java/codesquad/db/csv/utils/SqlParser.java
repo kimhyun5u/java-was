@@ -48,7 +48,7 @@ public class SqlParser {
 
     public static Table parseInsertTable(String sql) {
         // 기본적인 INSERT INTO 구문 파싱
-        Pattern pattern = Pattern.compile("INSERT\\s+INTO\\s+(\\w+)\\s*\\((.*?)\\)\\s*VALUES\\s*\\((.*?)\\)\\s*;", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Pattern pattern = Pattern.compile("INSERT\\s+INTO\\s+(\\w+)\\s*\\((.*?)\\)\\s*VALUES\\s*\\(([^)]*)\\)\\s*;?", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         Matcher matcher = pattern.matcher(sql);
 
         if (matcher.find()) {
@@ -79,20 +79,28 @@ public class SqlParser {
 
     public static Table parseSelectTable(String sql) {
         // 기본적인 SELECT 구문 파싱
-        Pattern pattern = Pattern.compile("SELECT\\s+(.*?)\\s+FROM\\s+(\\w+)\\s*;", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Pattern pattern = Pattern.compile("SELECT\\s+(\\*|\\w+(?:\\s*,\\s*\\w+)*)\\s+FROM\\s+(\\w+)(?:\\s+WHERE\\s+(.+?))?\\s*;?\\s*$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         Matcher matcher = pattern.matcher(sql);
 
         if (matcher.find()) {
-            String columnNames = matcher.group(1);
+//            String columnNames = matcher.group(1);
             String tableName = matcher.group(2);
 
             Table table = new Table(tableName);
 
             // 컬럼명 파싱
-            String[] columnNamesArray = columnNames.split(",");
-            for (String columnName : columnNamesArray) {
-                table.columns.add(new Column(columnName.trim(), null));
+//            String[] columnNamesArray = columnNames.split(",");
+//            for (String columnName : columnNamesArray) {
+//                table.columns.add(new Column(columnName.trim(), null));
+//            }
+            String where = matcher.group(3);
+            if (where != null) {
+                String[] whereArray = where.split("=");
+                Column column = new Column(whereArray[0].trim(), null);
+                column.setValue(whereArray[1].trim());
+                table.columns.add(column);
             }
+
 
             return table;
         }
