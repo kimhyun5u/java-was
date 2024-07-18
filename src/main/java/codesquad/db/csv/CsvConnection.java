@@ -278,11 +278,6 @@ public class CsvConnection implements Connection {
         return 0;
     }
 
-    // getter 메서드
-    public String getUrl() {
-        return url;
-    }
-
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         return null;
