@@ -1,7 +1,7 @@
 package codesquad.server.db;
 
-import codesquad.db.DatabaseResolver;
 import codesquad.model.User;
+import codesquad.utils.DatabaseResolver;
 
 import java.sql.Connection;
 import java.sql.SQLException;

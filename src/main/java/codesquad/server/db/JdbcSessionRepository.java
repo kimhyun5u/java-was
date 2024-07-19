@@ -1,6 +1,6 @@
 package codesquad.server.db;
 
-import codesquad.db.DatabaseResolver;
+import codesquad.utils.DatabaseResolver;
 
 import java.sql.Connection;
 import java.util.Random;

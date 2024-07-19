@@ -1,7 +1,7 @@
 package codesquad.server.db;
 
-import codesquad.db.DatabaseResolver;
 import codesquad.model.Article;
+import codesquad.utils.DatabaseResolver;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
