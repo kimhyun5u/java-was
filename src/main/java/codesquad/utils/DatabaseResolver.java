@@ -1,4 +1,4 @@
-package codesquad.db;
+package codesquad.utils;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
