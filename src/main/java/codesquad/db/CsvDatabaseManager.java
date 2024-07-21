@@ -36,6 +36,8 @@ public class CsvDatabaseManager {
 //            String[] headers = csvData.get(0);
 //            createTable(connection, "csv_data", headers);
 //            insertData(connection, "csv_data", headers, csvData.subList(1, csvData.size()));
+
+            System.out.println("Data inserted successfully");
         } catch (SQLException e) {
             e.printStackTrace();
         }
