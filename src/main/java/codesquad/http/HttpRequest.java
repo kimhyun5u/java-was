@@ -51,6 +51,7 @@ public class HttpRequest {
                 if (contentLength != -1) {
                     int bodyStart = headerEnd + 4;
                     int bodyEnd = bodyStart + contentLength;
+                    // Content-Length 만큼 읽은 경우
                     if (bodyEnd <= baos.size()) {
                         break;
                     }
