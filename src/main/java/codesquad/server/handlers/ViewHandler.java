@@ -112,10 +112,17 @@ public class ViewHandler {
         String template = new String(ResourceResolver.readResourceFileAsBytes("/static/index.html"));
 
         Article article = articleRepository.getArticle(now);
-        if (article == null) {
+        if (article == null && now == 1) {
             ctx.response()
                     .setStatus(HttpStatus.OK)
                     .setBody(template.replace("{{post}}", "").getBytes())
+                    .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
+            ;
+            return;
+        } else if (article == null) {
+            ctx.response()
+                    .setStatus(HttpStatus.REDIRECT_FOUND)
+                    .addHeader("Location", "/")
                     .addHeader("Set-Cookie", "page=" + 1 + "; Path=/; HttpOnly")
             ;
             return;
@@ -236,7 +243,7 @@ public class ViewHandler {
             return "";
         }
         return articleTemplate.replace("{{username}}", article.getUsername())
-                .replace("{post_img}", article.getImgSrc() == null ? defaultPostImg : "src=" + article.getImgSrc())
+                .replace("{post_img}", article.getImgSrc() == null || article.getImgSrc().equalsIgnoreCase("null") ? defaultPostImg : "src=" + article.getImgSrc())
                 .replace("{{content}}", article.getContent())
                 .replace("{{comments}}", getCommentListHtml(comments))
                 ;
