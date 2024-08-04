@@ -2,6 +2,7 @@ package codesquad.db.csv;
 
 
 import codesquad.db.csv.utils.Column;
+import codesquad.db.csv.utils.ShardingInfo;
 import codesquad.db.csv.utils.SqlParser;
 import codesquad.db.csv.utils.Table;
 
@@ -102,6 +103,8 @@ public class CsvStatement implements Statement {
                     bw.write(String.join(",", table.getColumns().stream().map(Column::getName).toArray(String[]::new)));
                     bw.newLine();
 
+                    // 테이블 생성시 ShardingInfo 에 추가
+                    ShardingInfo.updateShardingInfo(table.getName());
                 } catch (IOException e) {
                     throw new RuntimeException("Fail to create table", e);
                 }

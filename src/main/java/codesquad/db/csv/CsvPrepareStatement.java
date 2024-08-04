@@ -1,6 +1,7 @@
 package codesquad.db.csv;
 
 import codesquad.db.csv.utils.Column;
+import codesquad.db.csv.utils.ShardingInfo;
 import codesquad.db.csv.utils.SqlParser;
 import codesquad.db.csv.utils.Table;
 
@@ -10,8 +11,8 @@ import java.net.URL;
 import java.sql.Date;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
 
 public class CsvPrepareStatement implements PreparedStatement {
     private Connection conn;
@@ -156,65 +157,150 @@ public class CsvPrepareStatement implements PreparedStatement {
         }
 
         if (sql.toUpperCase().startsWith("INSERT")) {
+            Long shardingId = ShardingInfo.getShardingId(table.getName());
+            Long shardingNum = shardingId / ShardingInfo.getShardingSize();
             // 파일 쓰기
-            try (var writer = new BufferedWriter(new FileWriter(file, true))) {
-                writer.write(table.getColumns().stream().map(Column::getValue).collect(Collectors.joining(",")) + System.lineSeparator());
-            } catch (IOException e) {
-                throw new SQLException(e);
+            // ID 정책을 항상 +1 이고 메모리에 마지막 ID를 저장해두고 사용하면
+            // 삽입 비용을 절약할 수 있다.
+
+            // 마지막 샤딩 ID에 맞는 CSV 파일을 읽어서 삽입할 데이터를 정렬된 순서로 삽입
+            File shardingFile = new File(System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + (shardingId < ShardingInfo.getShardingSize() ? "" : "_" + shardingNum) + ".csv");
+
+            if (!shardingFile.exists()) {
+                try {
+                    shardingFile.createNewFile();
+                    // file 에서 헤더를 읽고 넣어주기
+                    try (var writer = new BufferedWriter(new FileWriter(shardingFile))) {
+                        try (var reader = new BufferedReader(new FileReader(file))) {
+                            writer.write(reader.readLine() + System.lineSeparator());
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
+            // 모두 읽은 다음에 정렬
+            String header;
+            PriorityQueue<String> lines = new PriorityQueue<>();
+            try (var reader = new BufferedReader(new FileReader(shardingFile))) {
+                String line;
+                // 헤더 읽기
+                header = reader.readLine();
+                while ((line = reader.readLine()) != null) {
+                    lines.add(line + System.lineSeparator());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+            // 삽입할 데이터 생성
+            String insertValue = table.getColumns().stream().map(Column::getValue).collect(Collectors.joining(",")) + System.lineSeparator();
+            lines.add(insertValue);
+
+
+            // 삽입할 데이터를 정렬된 순서로 파일에 쓰기
+            try (var writer = new BufferedWriter(new FileWriter(shardingFile))) {
+                writer.write(header + System.lineSeparator());
+                while (!lines.isEmpty()) {
+                    writer.write(lines.poll());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // 삽입한 데이터의 ID를 ShardingInfo 에 저장
+            ShardingInfo.updateShardingInfo(table.getName());
 
         } else if (sql.toUpperCase().startsWith("SELECT")) {
-            try (var reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                line = reader.readLine();
-                String[] headers = line.split(",");
+            // id 값으로 찾을 때 sharding size 로 나누어서 파일을 읽어서 찾는다.
+            if ("id".equals(table.getColumns().get(0).getName())) {
+                // sharding size 로 나눈 몫으로 파일 읽기
+                Long targetId = Long.parseLong(table.getColumns().get(0).getValue());
+                Long shardingNum = Long.parseLong(table.getColumns().get(0).getValue()) / ShardingInfo.getShardingSize();
+                File shardingFile = new File(System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + (targetId < ShardingInfo.getShardingSize() ? "" : "_" + shardingNum) + ".csv");
+                List<Map<String, Object>> resultSet = new ArrayList<>();
 
-                if (table.getColumns().isEmpty()) {
-                    List<Map<String, Object>> resultSet = new ArrayList<>();
+                if (!shardingFile.exists()) {
+                    this.resultSet = resultSet;
+                    return true;
+                }
+
+                try (var reader = new BufferedReader(new FileReader(shardingFile))) {
+                    String line;
+                    line = reader.readLine();
+                    String[] headers = line.split(",");
+
                     while ((line = reader.readLine()) != null) {
                         Map<String, Object> result = new HashMap<>();
+                        String[] values = line.split(",");
+                        if (!values[0].equals(targetId.toString())) {
+                            continue;
+                        }
+                        for (int i = 0; i < headers.length; i++) {
+                            result.put(headers[i], values[i]);
+                        }
+                        resultSet.add(result);
+                        break;
+                    }
+                    this.resultSet = resultSet;
+
+                    return true;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            // id 값이 아닐 때 전체 파일을 읽어서 찾는다.
+            Long shardingId = ShardingInfo.getShardingId(table.getName());
+            Long maxShardingNum = ShardingInfo.getShardingId(table.getName()) / ShardingInfo.getShardingSize() + 1;
+            List<Map<String, Object>> resultSet = new ArrayList<>();
+            for (Long shardingNum = 0L; shardingNum < maxShardingNum; shardingNum++) {
+                File shardingFile = new File(System.getProperty("user.home") + "/jdbc_csv/" + table.getName() + (shardingId < ShardingInfo.getShardingSize() ? "" : "_" + shardingNum) + ".csv");
+                try (var reader = new BufferedReader(new FileReader(shardingFile))) {
+                    String line;
+                    line = reader.readLine();
+                    String[] headers = line.split(",");
+
+                    if (table.getColumns().isEmpty()) {
+                        while ((line = reader.readLine()) != null) {
+                            Map<String, Object> result = new HashMap<>();
+                            String[] values = line.split(",");
+                            for (int i = 0; i < headers.length; i++) {
+                                result.put(headers[i], values[i]);
+                            }
+                            resultSet.add(result);
+                        }
+                        continue;
+                    }
+
+                    Column column = table.getColumns().get(0);// param
+
+                    // id 컬럼의 인덱스 찾기
+                    int idIndex = Arrays.asList(headers).indexOf(column.getName());
+
+                    while ((line = reader.readLine()) != null) {
+                        String value = line.split(",")[idIndex];
+                        if (value.equals(column.getValue())) {
+                            break;
+                        }
+                    }
+
+                    Map<String, Object> result = new HashMap<>();
+                    if (line != null) {
                         String[] values = line.split(",");
                         for (int i = 0; i < headers.length; i++) {
                             result.put(headers[i], values[i]);
                         }
                         resultSet.add(result);
                     }
-                    this.resultSet = resultSet;
-
-                    return true;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-                Column column = table.getColumns().get(0);// param
-
-                // id 컬럼의 인덱스 찾기
-                int idIndex = Arrays.asList(headers).indexOf(column.getName());
-
-                while ((line = reader.readLine()) != null) {
-                    String value = line.split(",")[idIndex];
-                    if (value.equals(column.getValue())) {
-                        break;
-                    }
-                }
-
-                List<Map<String, Object>> resultSet = new ArrayList<>();
-                Map<String, Object> result = new HashMap<>();
-                if (line != null) {
-
-                    String[] values = line.split(",");
-                    for (int i = 0; i < headers.length; i++) {
-                        result.put(headers[i], values[i]);
-                    }
-                    resultSet.add(result);
-                }
-                this.resultSet = resultSet;
-
-                return true;
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+            this.resultSet = resultSet;
 
+            return true;
         } else if (sql.toUpperCase().startsWith("UPDATE")) {
 
         } else if (sql.toUpperCase().startsWith("DELETE")) {

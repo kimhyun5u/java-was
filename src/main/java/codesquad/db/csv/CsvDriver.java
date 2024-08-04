@@ -1,5 +1,7 @@
 package codesquad.db.csv;
 
+import codesquad.db.csv.utils.ShardingInfo;
+
 import java.io.File;
 import java.sql.*;
 import java.util.Properties;
@@ -43,6 +45,9 @@ public class CsvDriver implements Driver {
                     return false;
                 }
             }
+
+            ShardingInfo.loadShardingInfo();
+
             return true;
         }
 
